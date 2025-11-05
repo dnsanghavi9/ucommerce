@@ -136,6 +136,7 @@ class UC_Plugin {
 
         if ( is_admin() ) {
             $this->admin = new UC_Admin_Menu();
+            new UC_Setup_Wizard(); // Initialize setup wizard
         }
 
         $this->products  = new UC_Products();

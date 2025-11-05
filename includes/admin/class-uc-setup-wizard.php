@@ -34,7 +34,7 @@ class UC_Setup_Wizard {
             null, // Hidden from menu
             __( 'U-Commerce Setup Wizard', 'u-commerce' ),
             __( 'Setup Wizard', 'u-commerce' ),
-            'manage_options',
+            'read', // Use minimal capability, check properly in render method
             'u-commerce-setup-wizard',
             array( $this, 'render_wizard_page' )
         );
@@ -128,6 +128,11 @@ class UC_Setup_Wizard {
      * Render wizard page.
      */
     public function render_wizard_page() {
+        // Check if user has permission (WordPress admin OR U-Commerce settings capability)
+        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'u_commerce_manage_settings' ) ) {
+            wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'u-commerce' ) );
+        }
+
         $step = isset( $_GET['step'] ) ? sanitize_text_field( $_GET['step'] ) : 'general';
         ?>
         <div class="wrap uc-setup-wizard">
