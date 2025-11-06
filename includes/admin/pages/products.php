@@ -25,29 +25,40 @@ $products_handler = new UC_Products();
 if ( isset( $_POST['uc_product_submit'] ) ) {
     check_admin_referer( 'uc_product_save', 'uc_product_nonce' );
 
-    // Collect basic data
-    $data = array(
-        'name'        => isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '',
-        'sku'         => isset( $_POST['sku'] ) ? sanitize_text_field( $_POST['sku'] ) : '',
-        'category_id' => isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0,
-        'base_cost'   => isset( $_POST['base_cost'] ) ? floatval( $_POST['base_cost'] ) : 0,
-        'description' => isset( $_POST['description'] ) ? wp_kses_post( $_POST['description'] ) : '',
-        'status'      => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'active',
-    );
+    $active_tab = isset( $_POST['active_tab'] ) ? sanitize_text_field( $_POST['active_tab'] ) : 'basic';
+    $data = array();
 
-    // Handle variables (JSON)
-    $variables = array();
-    if ( isset( $_POST['variable_name'] ) && is_array( $_POST['variable_name'] ) ) {
-        foreach ( $_POST['variable_name'] as $index => $var_name ) {
-            if ( ! empty( $var_name ) && ! empty( $_POST['variable_values'][ $index ] ) ) {
-                $variables[] = array(
-                    'name'   => sanitize_text_field( $var_name ),
-                    'values' => sanitize_text_field( $_POST['variable_values'][ $index ] ),
-                );
+    // Only update fields from the active tab
+    if ( $active_tab === 'variables' && $product_id ) {
+        // Variables tab - only update variables
+        $variables = array();
+        if ( isset( $_POST['variable_name'] ) && is_array( $_POST['variable_name'] ) ) {
+            foreach ( $_POST['variable_name'] as $index => $var_name ) {
+                if ( ! empty( $var_name ) && ! empty( $_POST['variable_values'][ $index ] ) ) {
+                    $variables[] = array(
+                        'name'   => sanitize_text_field( $var_name ),
+                        'values' => sanitize_text_field( $_POST['variable_values'][ $index ] ),
+                    );
+                }
             }
         }
+        $data['variables'] = $variables;
+    } else {
+        // Basic tab or new product - update basic fields
+        $data = array(
+            'name'        => isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '',
+            'sku'         => isset( $_POST['sku'] ) ? sanitize_text_field( $_POST['sku'] ) : '',
+            'category_id' => isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0,
+            'base_cost'   => isset( $_POST['base_cost'] ) ? floatval( $_POST['base_cost'] ) : 0,
+            'description' => isset( $_POST['description'] ) ? wp_kses_post( $_POST['description'] ) : '',
+            'status'      => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'active',
+        );
+
+        // For new products, initialize empty variables
+        if ( ! $product_id ) {
+            $data['variables'] = array();
+        }
     }
-    $data['variables'] = $variables;
 
     if ( $product_id ) {
         // Update

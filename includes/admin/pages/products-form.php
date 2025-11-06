@@ -84,6 +84,7 @@ if ( $is_edit && ! empty( $product->variables ) ) {
         ?>
         <form method="post" action="">
             <?php wp_nonce_field( 'uc_product_save', 'uc_product_nonce' ); ?>
+            <input type="hidden" name="active_tab" value="<?php echo esc_attr( $active_tab ); ?>">
 
             <div class="uc-card">
                 <?php if ( $active_tab === 'variables' && $is_edit ) : ?>
@@ -175,12 +176,47 @@ if ( $is_edit && ! empty( $product->variables ) ) {
                             <td>
                                 <select name="category_id" id="product_category" class="regular-text">
                                     <option value="0"><?php esc_html_e( 'Select Category', 'u-commerce' ); ?></option>
-                                    <?php foreach ( $all_categories as $cat ) : ?>
-                                        <option value="<?php echo esc_attr( $cat->id ); ?>"
-                                                <?php echo ( $is_edit && $product->category_id == $cat->id ) ? 'selected' : ''; ?>>
-                                            <?php echo esc_html( $cat->name ); ?>
+                                    <?php
+                                    // Build hierarchical category map
+                                    $category_map = array();
+                                    foreach ( $all_categories as $cat ) {
+                                        if ( $cat->parent_id == 0 ) {
+                                            if ( ! isset( $category_map[0] ) ) {
+                                                $category_map[0] = array();
+                                            }
+                                            $category_map[0][] = $cat;
+                                        } else {
+                                            if ( ! isset( $category_map[ $cat->parent_id ] ) ) {
+                                                $category_map[ $cat->parent_id ] = array();
+                                            }
+                                            $category_map[ $cat->parent_id ][] = $cat;
+                                        }
+                                    }
+
+                                    // Recursive function to display categories
+                                    function display_category_option( $category, $level, $category_map, $selected_id ) {
+                                        $indent = str_repeat( '&nbsp;&nbsp;&nbsp;', $level );
+                                        $prefix = $level > 0 ? '—' : '';
+                                        ?>
+                                        <option value="<?php echo esc_attr( $category->id ); ?>" <?php selected( $selected_id, $category->id ); ?>>
+                                            <?php echo $indent . $prefix . ' ' . esc_html( $category->name ); ?>
                                         </option>
-                                    <?php endforeach; ?>
+                                        <?php
+                                        // Display children
+                                        if ( isset( $category_map[ $category->id ] ) ) {
+                                            foreach ( $category_map[ $category->id ] as $child ) {
+                                                display_category_option( $child, $level + 1, $category_map, $selected_id );
+                                            }
+                                        }
+                                    }
+
+                                    // Display root categories and their children
+                                    if ( isset( $category_map[0] ) ) {
+                                        foreach ( $category_map[0] as $root_cat ) {
+                                            display_category_option( $root_cat, 0, $category_map, $is_edit ? $product->category_id : 0 );
+                                        }
+                                    }
+                                    ?>
                                 </select>
                             </td>
                         </tr>
