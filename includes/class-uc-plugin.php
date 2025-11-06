@@ -159,6 +159,10 @@ class UC_Plugin {
 
         // Add settings link on plugin page
         add_filter( 'plugin_action_links_' . UC_PLUGIN_BASENAME, array( $this, 'add_plugin_action_links' ) );
+
+        // AJAX handlers for categories
+        add_action( 'wp_ajax_uc_get_category', array( $this, 'ajax_get_category' ) );
+        add_action( 'wp_ajax_uc_save_category', array( $this, 'ajax_save_category' ) );
     }
 
     /**
@@ -246,6 +250,73 @@ class UC_Plugin {
         array_unshift( $links, $settings_link );
 
         return $links;
+    }
+
+    /**
+     * AJAX handler: Get category data.
+     */
+    public function ajax_get_category() {
+        check_ajax_referer( 'uc_admin_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'u_commerce_manage_categories' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'u-commerce' ) ) );
+        }
+
+        $category_id = isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0;
+
+        if ( ! $category_id ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid category ID.', 'u-commerce' ) ) );
+        }
+
+        $categories = new UC_Categories();
+        $category = $categories->get( $category_id );
+
+        if ( ! $category ) {
+            wp_send_json_error( array( 'message' => __( 'Category not found.', 'u-commerce' ) ) );
+        }
+
+        wp_send_json_success( $category );
+    }
+
+    /**
+     * AJAX handler: Save category.
+     */
+    public function ajax_save_category() {
+        check_ajax_referer( 'uc_category_save', 'uc_category_nonce' );
+
+        if ( ! current_user_can( 'u_commerce_manage_categories' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'u-commerce' ) ) );
+        }
+
+        $category_id = isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0;
+        $data = array(
+            'name'        => isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '',
+            'slug'        => isset( $_POST['slug'] ) ? sanitize_text_field( $_POST['slug'] ) : '',
+            'parent_id'   => isset( $_POST['parent_id'] ) ? absint( $_POST['parent_id'] ) : 0,
+            'description' => isset( $_POST['description'] ) ? sanitize_textarea_field( $_POST['description'] ) : '',
+        );
+
+        if ( empty( $data['name'] ) ) {
+            wp_send_json_error( array( 'message' => __( 'Category name is required.', 'u-commerce' ) ) );
+        }
+
+        $categories = new UC_Categories();
+
+        if ( $category_id ) {
+            // Update existing category
+            $result = $categories->update( $category_id, $data );
+            $message = __( 'Category updated successfully.', 'u-commerce' );
+        } else {
+            // Create new category
+            $result = $categories->create( $data );
+            $message = __( 'Category created successfully.', 'u-commerce' );
+        }
+
+        if ( $result ) {
+            wp_send_json_success( array( 'message' => $message ) );
+        } else {
+            wp_send_json_error( array( 'message' => __( 'Failed to save category.', 'u-commerce' ) ) );
+        }
     }
 
     /**
