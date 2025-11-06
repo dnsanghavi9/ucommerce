@@ -1,0 +1,303 @@
+<?php
+/**
+ * Products add/edit form with tabs.
+ *
+ * @package    UCommerce
+ * @subpackage UCommerce/includes/admin/pages
+ */
+
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+$is_edit = isset( $product ) && $product;
+$page_title = $is_edit ? __( 'Edit Product', 'u-commerce' ) : __( 'Add New Product', 'u-commerce' );
+
+// Get all categories
+$categories_handler = new UC_Categories();
+$all_categories = $categories_handler->get_all();
+
+// Get active tab
+$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'basic';
+
+// Decode variables if editing
+$variables = array();
+if ( $is_edit && ! empty( $product->variables ) ) {
+    if ( is_string( $product->variables ) ) {
+        $variables = json_decode( $product->variables, true );
+    } elseif ( is_array( $product->variables ) ) {
+        $variables = $product->variables;
+    }
+}
+?>
+
+<div class="wrap">
+    <h1 class="wp-heading-inline"><?php echo esc_html( $page_title ); ?></h1>
+    <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products' ) ); ?>" class="page-title-action">
+        <?php esc_html_e( '← Back to Products', 'u-commerce' ); ?>
+    </a>
+    <hr class="wp-header-end">
+
+    <?php if ( $is_edit ) : ?>
+        <!-- Tabs Navigation -->
+        <h2 class="nav-tab-wrapper">
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products&action=edit&id=' . $product->id . '&tab=basic' ) ); ?>"
+               class="nav-tab <?php echo $active_tab === 'basic' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e( 'Basic Info', 'u-commerce' ); ?>
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products&action=edit&id=' . $product->id . '&tab=variables' ) ); ?>"
+               class="nav-tab <?php echo $active_tab === 'variables' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e( 'Variables', 'u-commerce' ); ?>
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products&action=edit&id=' . $product->id . '&tab=purchase-history' ) ); ?>"
+               class="nav-tab <?php echo $active_tab === 'purchase-history' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e( 'Purchase History', 'u-commerce' ); ?>
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products&action=edit&id=' . $product->id . '&tab=sales-history' ) ); ?>"
+               class="nav-tab <?php echo $active_tab === 'sales-history' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e( 'Sales History', 'u-commerce' ); ?>
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products&action=edit&id=' . $product->id . '&tab=inventory' ) ); ?>"
+               class="nav-tab <?php echo $active_tab === 'inventory' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e( 'Inventory', 'u-commerce' ); ?>
+            </a>
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products&action=edit&id=' . $product->id . '&tab=pricing' ) ); ?>"
+               class="nav-tab <?php echo $active_tab === 'pricing' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e( 'Pricing', 'u-commerce' ); ?>
+            </a>
+        </h2>
+    <?php endif; ?>
+
+    <?php
+    // Show appropriate tab content
+    if ( $active_tab === 'purchase-history' && $is_edit ) {
+        include UC_PLUGIN_DIR . 'includes/admin/pages/products-tab-purchase-history.php';
+    } elseif ( $active_tab === 'sales-history' && $is_edit ) {
+        include UC_PLUGIN_DIR . 'includes/admin/pages/products-tab-sales-history.php';
+    } elseif ( $active_tab === 'inventory' && $is_edit ) {
+        include UC_PLUGIN_DIR . 'includes/admin/pages/products-tab-inventory.php';
+    } elseif ( $active_tab === 'pricing' && $is_edit ) {
+        include UC_PLUGIN_DIR . 'includes/admin/pages/products-tab-pricing.php';
+    } else {
+        // Show form for basic and variables tabs
+        ?>
+        <form method="post" action="">
+            <?php wp_nonce_field( 'uc_product_save', 'uc_product_nonce' ); ?>
+
+            <div class="uc-card">
+                <?php if ( $active_tab === 'variables' && $is_edit ) : ?>
+                    <!-- Variables Tab -->
+                    <h2><?php esc_html_e( 'Product Variables', 'u-commerce' ); ?></h2>
+                    <p class="description"><?php esc_html_e( 'Add product variations like size, color, material, etc. Values should be comma-separated.', 'u-commerce' ); ?></p>
+
+                    <div id="variables-container">
+                        <?php if ( ! empty( $variables ) ) : ?>
+                            <?php foreach ( $variables as $index => $variable ) : ?>
+                                <div class="variable-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <div style="display: flex; gap: 15px; align-items: start;">
+                                        <div style="flex: 1;">
+                                            <label><strong><?php esc_html_e( 'Variable Name', 'u-commerce' ); ?></strong></label>
+                                            <input type="text" name="variable_name[]" class="regular-text"
+                                                   value="<?php echo esc_attr( $variable['name'] ); ?>"
+                                                   placeholder="<?php esc_attr_e( 'e.g., Size, Color, Material', 'u-commerce' ); ?>">
+                                        </div>
+                                        <div style="flex: 2;">
+                                            <label><strong><?php esc_html_e( 'Values (comma-separated)', 'u-commerce' ); ?></strong></label>
+                                            <input type="text" name="variable_values[]" class="large-text"
+                                                   value="<?php echo esc_attr( $variable['values'] ); ?>"
+                                                   placeholder="<?php esc_attr_e( 'e.g., Small, Medium, Large', 'u-commerce' ); ?>">
+                                        </div>
+                                        <div style="padding-top: 25px;">
+                                            <button type="button" class="button remove-variable"><?php esc_html_e( 'Remove', 'u-commerce' ); ?></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+
+                    <button type="button" id="add-variable" class="button">
+                        <?php esc_html_e( '+ Add Variable', 'u-commerce' ); ?>
+                    </button>
+
+                <?php else : ?>
+                    <!-- Basic Info Tab -->
+                    <h2><?php esc_html_e( 'Product Information', 'u-commerce' ); ?></h2>
+
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="product_name">
+                                    <?php esc_html_e( 'Product Name', 'u-commerce' ); ?>
+                                    <span style="color: red;">*</span>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="text"
+                                       name="name"
+                                       id="product_name"
+                                       class="regular-text"
+                                       value="<?php echo $is_edit ? esc_attr( $product->name ) : ''; ?>"
+                                       required>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="product_sku">
+                                    <?php esc_html_e( 'SKU', 'u-commerce' ); ?>
+                                    <span style="color: red;">*</span>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="text"
+                                       name="sku"
+                                       id="product_sku"
+                                       class="regular-text"
+                                       value="<?php echo $is_edit ? esc_attr( $product->sku ) : ''; ?>"
+                                       required>
+                                <?php if ( ! $is_edit ) : ?>
+                                    <button type="button" id="generate-sku" class="button" style="margin-left: 10px;">
+                                        <?php esc_html_e( 'Generate SKU', 'u-commerce' ); ?>
+                                    </button>
+                                <?php endif; ?>
+                                <p class="description"><?php esc_html_e( 'Stock Keeping Unit - unique identifier', 'u-commerce' ); ?></p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="product_category">
+                                    <?php esc_html_e( 'Category', 'u-commerce' ); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <select name="category_id" id="product_category" class="regular-text">
+                                    <option value="0"><?php esc_html_e( 'Select Category', 'u-commerce' ); ?></option>
+                                    <?php foreach ( $all_categories as $cat ) : ?>
+                                        <option value="<?php echo esc_attr( $cat->id ); ?>"
+                                                <?php echo ( $is_edit && $product->category_id == $cat->id ) ? 'selected' : ''; ?>>
+                                            <?php echo esc_html( $cat->name ); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="product_base_cost">
+                                    <?php esc_html_e( 'Base Cost', 'u-commerce' ); ?>
+                                    <span style="color: red;">*</span>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="number"
+                                       name="base_cost"
+                                       id="product_base_cost"
+                                       class="regular-text"
+                                       step="0.01"
+                                       min="0"
+                                       value="<?php echo $is_edit ? esc_attr( $product->base_cost ) : ''; ?>"
+                                       required>
+                                <p class="description"><?php esc_html_e( 'Purchase cost per unit', 'u-commerce' ); ?></p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="product_description">
+                                    <?php esc_html_e( 'Description', 'u-commerce' ); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <?php
+                                $content = $is_edit ? $product->description : '';
+                                wp_editor(
+                                    $content,
+                                    'product_description',
+                                    array(
+                                        'textarea_name' => 'description',
+                                        'textarea_rows' => 10,
+                                        'media_buttons' => false,
+                                        'teeny'         => true,
+                                    )
+                                );
+                                ?>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
+                                <label for="product_status">
+                                    <?php esc_html_e( 'Status', 'u-commerce' ); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <select name="status" id="product_status" class="regular-text">
+                                    <option value="active" <?php echo ( ! $is_edit || $product->status === 'active' ) ? 'selected' : ''; ?>>
+                                        <?php esc_html_e( 'Active', 'u-commerce' ); ?>
+                                    </option>
+                                    <option value="inactive" <?php echo ( $is_edit && $product->status === 'inactive' ) ? 'selected' : ''; ?>>
+                                        <?php esc_html_e( 'Inactive', 'u-commerce' ); ?>
+                                    </option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                <?php endif; ?>
+            </div>
+
+            <p class="submit">
+                <input type="submit"
+                       name="uc_product_submit"
+                       class="button button-primary button-large"
+                       value="<?php echo $is_edit ? esc_attr__( 'Update Product', 'u-commerce' ) : esc_attr__( 'Add Product', 'u-commerce' ); ?>">
+                <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-products' ) ); ?>"
+                   class="button button-large"
+                   style="margin-left: 10px;">
+                    <?php esc_html_e( 'Cancel', 'u-commerce' ); ?>
+                </a>
+            </p>
+        </form>
+    <?php } ?>
+</div>
+
+<script>
+jQuery(document).ready(function($) {
+    // Generate SKU
+    $('#generate-sku').on('click', function() {
+        var timestamp = Date.now();
+        var random = Math.floor(Math.random() * 9999);
+        var sku = 'UC-' + timestamp + '-' + random;
+        $('#product_sku').val(sku);
+    });
+
+    // Add variable row
+    $('#add-variable').on('click', function() {
+        var html = '<div class="variable-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">' +
+            '<div style="display: flex; gap: 15px; align-items: start;">' +
+            '<div style="flex: 1;">' +
+            '<label><strong><?php esc_html_e( 'Variable Name', 'u-commerce' ); ?></strong></label>' +
+            '<input type="text" name="variable_name[]" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., Size, Color, Material', 'u-commerce' ); ?>">' +
+            '</div>' +
+            '<div style="flex: 2;">' +
+            '<label><strong><?php esc_html_e( 'Values (comma-separated)', 'u-commerce' ); ?></strong></label>' +
+            '<input type="text" name="variable_values[]" class="large-text" placeholder="<?php esc_attr_e( 'e.g., Small, Medium, Large', 'u-commerce' ); ?>">' +
+            '</div>' +
+            '<div style="padding-top: 25px;">' +
+            '<button type="button" class="button remove-variable"><?php esc_html_e( 'Remove', 'u-commerce' ); ?></button>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $('#variables-container').append(html);
+    });
+
+    // Remove variable row
+    $(document).on('click', '.remove-variable', function() {
+        $(this).closest('.variable-row').remove();
+    });
+});
+</script>
