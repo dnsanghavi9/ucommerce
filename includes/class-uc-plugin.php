@@ -104,6 +104,7 @@ class UC_Plugin {
     private function load_dependencies() {
         // Core classes
         require_once UC_PLUGIN_DIR . 'includes/core/class-uc-database.php';
+        require_once UC_PLUGIN_DIR . 'includes/core/class-uc-database-updater.php';
         require_once UC_PLUGIN_DIR . 'includes/core/class-uc-roles.php';
         require_once UC_PLUGIN_DIR . 'includes/core/class-uc-capabilities.php';
 
@@ -114,6 +115,7 @@ class UC_Plugin {
         // Module classes
         require_once UC_PLUGIN_DIR . 'includes/modules/products/class-uc-products.php';
         require_once UC_PLUGIN_DIR . 'includes/modules/products/class-uc-categories.php';
+        require_once UC_PLUGIN_DIR . 'includes/modules/products/class-uc-variables.php';
         require_once UC_PLUGIN_DIR . 'includes/modules/inventory/class-uc-inventory.php';
         require_once UC_PLUGIN_DIR . 'includes/modules/inventory/class-uc-stock-manager.php';
         require_once UC_PLUGIN_DIR . 'includes/modules/billing/class-uc-purchase-bills.php';
@@ -153,6 +155,9 @@ class UC_Plugin {
             return;
         }
 
+        // Run database updates if needed
+        add_action( 'admin_init', array( $this, 'maybe_update_database' ) );
+
         // Load admin styles and scripts
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
@@ -163,6 +168,17 @@ class UC_Plugin {
         // AJAX handlers for categories
         add_action( 'wp_ajax_uc_get_category', array( $this, 'ajax_get_category' ) );
         add_action( 'wp_ajax_uc_save_category', array( $this, 'ajax_save_category' ) );
+    }
+
+    /**
+     * Check and run database updates if needed.
+     */
+    public function maybe_update_database() {
+        $current_db_version = get_option( 'u_commerce_db_version', '1.0' );
+
+        if ( version_compare( $current_db_version, '1.1', '<' ) ) {
+            UC_Database_Updater::update();
+        }
     }
 
     /**

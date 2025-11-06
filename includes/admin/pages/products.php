@@ -25,40 +25,75 @@ $products_handler = new UC_Products();
 if ( isset( $_POST['uc_product_submit'] ) ) {
     check_admin_referer( 'uc_product_save', 'uc_product_nonce' );
 
-    // Collect basic data
-    $data = array(
-        'name'        => isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '',
-        'sku'         => isset( $_POST['sku'] ) ? sanitize_text_field( $_POST['sku'] ) : '',
-        'category_id' => isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0,
-        'base_cost'   => isset( $_POST['base_cost'] ) ? floatval( $_POST['base_cost'] ) : 0,
-        'description' => isset( $_POST['description'] ) ? wp_kses_post( $_POST['description'] ) : '',
-        'status'      => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'active',
-    );
+    $active_tab = isset( $_POST['active_tab'] ) ? sanitize_text_field( $_POST['active_tab'] ) : 'basic';
+    $data = array();
 
-    // Handle variables (JSON)
-    $variables = array();
-    if ( isset( $_POST['variable_name'] ) && is_array( $_POST['variable_name'] ) ) {
-        foreach ( $_POST['variable_name'] as $index => $var_name ) {
-            if ( ! empty( $var_name ) && ! empty( $_POST['variable_values'][ $index ] ) ) {
-                $variables[] = array(
-                    'name'   => sanitize_text_field( $var_name ),
-                    'values' => sanitize_text_field( $_POST['variable_values'][ $index ] ),
-                );
+    // Only update fields from the active tab
+    if ( $active_tab === 'variables' && $product_id ) {
+        // Variables tab - use new variable system
+        $variables_handler = new UC_Variables();
+
+        // Get selected variables
+        $selected_variables = isset( $_POST['selected_variables'] ) ? array_map( 'absint', $_POST['selected_variables'] ) : array();
+
+        // Get existing product variables
+        $existing_variables = $variables_handler->get_by_product( $product_id );
+        $existing_variable_ids = array();
+        foreach ( $existing_variables as $ev ) {
+            $existing_variable_ids[] = $ev->id;
+        }
+
+        // Remove unselected variables
+        foreach ( $existing_variable_ids as $ev_id ) {
+            if ( ! in_array( $ev_id, $selected_variables ) ) {
+                $variables_handler->unlink_from_product( $product_id, $ev_id );
             }
         }
-    }
-    $data['variables'] = $variables;
 
-    if ( $product_id ) {
-        // Update
-        $result = $products_handler->update( $product_id, $data );
-        $message = __( 'Product updated successfully.', 'u-commerce' );
+        // Add/update selected variables with their values
+        foreach ( $selected_variables as $variable_id ) {
+            $value_key = 'variable_values_' . $variable_id;
+            if ( isset( $_POST[ $value_key ] ) && is_array( $_POST[ $value_key ] ) ) {
+                $selected_values = array_map( 'sanitize_text_field', $_POST[ $value_key ] );
+                $selected_values_string = implode( ', ', $selected_values );
+                $variables_handler->link_to_product( $product_id, $variable_id, $selected_values_string );
+            }
+        }
+
+        // Don't update data array for variables tab - relationships are already saved
+        $result = true; // Mark as successful
+        $message = __( 'Product variables updated successfully.', 'u-commerce' );
         $saved_id = $product_id;
     } else {
-        // Create
-        $result = $products_handler->create( $data );
-        $message = __( 'Product created successfully.', 'u-commerce' );
-        $saved_id = $result;
+        // Basic tab or new product - update basic fields
+        $data = array(
+            'name'        => isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '',
+            'sku'         => isset( $_POST['sku'] ) ? sanitize_text_field( $_POST['sku'] ) : '',
+            'category_id' => isset( $_POST['category_id'] ) ? absint( $_POST['category_id'] ) : 0,
+            'base_cost'   => isset( $_POST['base_cost'] ) ? floatval( $_POST['base_cost'] ) : 0,
+            'description' => isset( $_POST['description'] ) ? wp_kses_post( $_POST['description'] ) : '',
+            'status'      => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'active',
+        );
+
+        // For new products, initialize empty variables
+        if ( ! $product_id ) {
+            $data['variables'] = array();
+        }
+    }
+
+    // Only run update/create for non-variables tabs
+    if ( $active_tab !== 'variables' ) {
+        if ( $product_id ) {
+            // Update
+            $result = $products_handler->update( $product_id, $data );
+            $message = __( 'Product updated successfully.', 'u-commerce' );
+            $saved_id = $product_id;
+        } else {
+            // Create
+            $result = $products_handler->create( $data );
+            $message = __( 'Product created successfully.', 'u-commerce' );
+            $saved_id = $result;
+        }
     }
 
     if ( $result ) {

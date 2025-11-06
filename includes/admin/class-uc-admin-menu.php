@@ -70,6 +70,16 @@ class UC_Admin_Menu {
             array( $this, 'render_categories_page' )
         );
 
+        // Variables
+        add_submenu_page(
+            'u-commerce',
+            __( 'Variables', 'u-commerce' ),
+            __( 'Variables', 'u-commerce' ),
+            'u_commerce_manage_categories', // Use same capability as categories
+            'u-commerce-variables',
+            array( $this, 'render_variables_page' )
+        );
+
         // Inventory
         add_submenu_page(
             'u-commerce',
@@ -170,6 +180,13 @@ class UC_Admin_Menu {
      */
     public function render_categories_page() {
         $this->render_page( 'categories' );
+    }
+
+    /**
+     * Render variables page.
+     */
+    public function render_variables_page() {
+        $this->render_page( 'variables' );
     }
 
     /**
