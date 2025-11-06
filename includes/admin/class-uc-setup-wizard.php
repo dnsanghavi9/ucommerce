@@ -31,10 +31,10 @@ class UC_Setup_Wizard {
      */
     public function add_wizard_page() {
         add_submenu_page(
-            null, // Hidden from menu
+            'u-commerce', // Make it visible under U-Commerce menu
             __( 'U-Commerce Setup Wizard', 'u-commerce' ),
             __( 'Setup Wizard', 'u-commerce' ),
-            'read', // Use minimal capability, check properly in render method
+            'read', // Minimal capability - any logged-in user can access (will restrict later)
             'u-commerce-setup-wizard',
             array( $this, 'render_wizard_page' )
         );
@@ -128,10 +128,8 @@ class UC_Setup_Wizard {
      * Render wizard page.
      */
     public function render_wizard_page() {
-        // Check if user has permission (WordPress admin OR U-Commerce settings capability)
-        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'u_commerce_manage_settings' ) ) {
-            wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'u-commerce' ) );
-        }
+        // TODO: Restrict access to admins only in future
+        // For now, allowing all logged-in users to access for testing
 
         $step = isset( $_GET['step'] ) ? sanitize_text_field( $_GET['step'] ) : 'general';
         ?>
