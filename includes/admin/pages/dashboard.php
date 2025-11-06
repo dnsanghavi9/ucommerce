@@ -28,7 +28,7 @@ $setup_needed = get_option( 'u_commerce_newly_installed', false );
 <div class="wrap">
     <h1><?php esc_html_e( 'U-Commerce Dashboard', 'u-commerce' ); ?></h1>
 
-    <?php if ( $setup_needed && current_user_can( 'manage_options' ) ) : ?>
+    <?php if ( $setup_needed ) : ?>
         <div class="notice notice-info">
             <p>
                 <?php esc_html_e( 'Welcome to U-Commerce! Click the button below to complete the initial setup.', 'u-commerce' ); ?>
