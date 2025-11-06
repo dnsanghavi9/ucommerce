@@ -30,19 +30,40 @@ if ( isset( $_POST['uc_product_submit'] ) ) {
 
     // Only update fields from the active tab
     if ( $active_tab === 'variables' && $product_id ) {
-        // Variables tab - only update variables
-        $variables = array();
-        if ( isset( $_POST['variable_name'] ) && is_array( $_POST['variable_name'] ) ) {
-            foreach ( $_POST['variable_name'] as $index => $var_name ) {
-                if ( ! empty( $var_name ) && ! empty( $_POST['variable_values'][ $index ] ) ) {
-                    $variables[] = array(
-                        'name'   => sanitize_text_field( $var_name ),
-                        'values' => sanitize_text_field( $_POST['variable_values'][ $index ] ),
-                    );
-                }
+        // Variables tab - use new variable system
+        $variables_handler = new UC_Variables();
+
+        // Get selected variables
+        $selected_variables = isset( $_POST['selected_variables'] ) ? array_map( 'absint', $_POST['selected_variables'] ) : array();
+
+        // Get existing product variables
+        $existing_variables = $variables_handler->get_by_product( $product_id );
+        $existing_variable_ids = array();
+        foreach ( $existing_variables as $ev ) {
+            $existing_variable_ids[] = $ev->id;
+        }
+
+        // Remove unselected variables
+        foreach ( $existing_variable_ids as $ev_id ) {
+            if ( ! in_array( $ev_id, $selected_variables ) ) {
+                $variables_handler->unlink_from_product( $product_id, $ev_id );
             }
         }
-        $data['variables'] = $variables;
+
+        // Add/update selected variables with their values
+        foreach ( $selected_variables as $variable_id ) {
+            $value_key = 'variable_values_' . $variable_id;
+            if ( isset( $_POST[ $value_key ] ) && is_array( $_POST[ $value_key ] ) ) {
+                $selected_values = array_map( 'sanitize_text_field', $_POST[ $value_key ] );
+                $selected_values_string = implode( ', ', $selected_values );
+                $variables_handler->link_to_product( $product_id, $variable_id, $selected_values_string );
+            }
+        }
+
+        // Don't update data array for variables tab - relationships are already saved
+        $result = true; // Mark as successful
+        $message = __( 'Product variables updated successfully.', 'u-commerce' );
+        $saved_id = $product_id;
     } else {
         // Basic tab or new product - update basic fields
         $data = array(
@@ -60,16 +81,19 @@ if ( isset( $_POST['uc_product_submit'] ) ) {
         }
     }
 
-    if ( $product_id ) {
-        // Update
-        $result = $products_handler->update( $product_id, $data );
-        $message = __( 'Product updated successfully.', 'u-commerce' );
-        $saved_id = $product_id;
-    } else {
-        // Create
-        $result = $products_handler->create( $data );
-        $message = __( 'Product created successfully.', 'u-commerce' );
-        $saved_id = $result;
+    // Only run update/create for non-variables tabs
+    if ( $active_tab !== 'variables' ) {
+        if ( $product_id ) {
+            // Update
+            $result = $products_handler->update( $product_id, $data );
+            $message = __( 'Product updated successfully.', 'u-commerce' );
+            $saved_id = $product_id;
+        } else {
+            // Create
+            $result = $products_handler->create( $data );
+            $message = __( 'Product created successfully.', 'u-commerce' );
+            $saved_id = $result;
+        }
     }
 
     if ( $result ) {

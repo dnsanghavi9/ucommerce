@@ -90,37 +90,114 @@ if ( $is_edit && ! empty( $product->variables ) ) {
                 <?php if ( $active_tab === 'variables' && $is_edit ) : ?>
                     <!-- Variables Tab -->
                     <h2><?php esc_html_e( 'Product Variables', 'u-commerce' ); ?></h2>
-                    <p class="description"><?php esc_html_e( 'Add product variations like size, color, material, etc. Values should be comma-separated.', 'u-commerce' ); ?></p>
+                    <p class="description">
+                        <?php esc_html_e( 'Select variables and their values for this product. Variables are inherited from the category and can be customized.', 'u-commerce' ); ?>
+                    </p>
 
-                    <div id="variables-container">
-                        <?php if ( ! empty( $variables ) ) : ?>
-                            <?php foreach ( $variables as $index => $variable ) : ?>
-                                <div class="variable-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
-                                    <div style="display: flex; gap: 15px; align-items: start;">
-                                        <div style="flex: 1;">
-                                            <label><strong><?php esc_html_e( 'Variable Name', 'u-commerce' ); ?></strong></label>
-                                            <input type="text" name="variable_name[]" class="regular-text"
-                                                   value="<?php echo esc_attr( $variable['name'] ); ?>"
-                                                   placeholder="<?php esc_attr_e( 'e.g., Size, Color, Material', 'u-commerce' ); ?>">
-                                        </div>
-                                        <div style="flex: 2;">
-                                            <label><strong><?php esc_html_e( 'Values (comma-separated)', 'u-commerce' ); ?></strong></label>
-                                            <input type="text" name="variable_values[]" class="large-text"
-                                                   value="<?php echo esc_attr( $variable['values'] ); ?>"
-                                                   placeholder="<?php esc_attr_e( 'e.g., Small, Medium, Large', 'u-commerce' ); ?>">
-                                        </div>
-                                        <div style="padding-top: 25px;">
-                                            <button type="button" class="button remove-variable"><?php esc_html_e( 'Remove', 'u-commerce' ); ?></button>
+                    <?php
+                    // Get all variables
+                    $variables_handler = new UC_Variables();
+                    $all_variables = $variables_handler->get_all();
+
+                    // Get variables from category
+                    $category_variables = array();
+                    if ( $product->category_id ) {
+                        $category_variables = $variables_handler->get_by_category( $product->category_id );
+                    }
+
+                    // Get currently selected variables for this product
+                    $product_variables = $variables_handler->get_by_product( $product->id );
+                    $selected_variable_ids = array();
+                    $selected_values_map = array();
+                    foreach ( $product_variables as $pv ) {
+                        $selected_variable_ids[] = $pv->id;
+                        $selected_values_map[ $pv->id ] = $pv->selected_values;
+                    }
+                    ?>
+
+                    <?php if ( $all_variables ) : ?>
+                        <div id="variables-container">
+                            <?php if ( $category_variables ) : ?>
+                                <div style="background: #f0f6fc; padding: 15px; border-left: 4px solid #0073aa; margin-bottom: 20px;">
+                                    <strong><?php esc_html_e( 'Category Variables', 'u-commerce' ); ?></strong>
+                                    <p class="description" style="margin: 5px 0 0 0;">
+                                        <?php esc_html_e( 'The following variables are automatically available from the selected category:', 'u-commerce' ); ?>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php foreach ( $all_variables as $variable ) : ?>
+                                <?php
+                                $is_from_category = false;
+                                foreach ( $category_variables as $cv ) {
+                                    if ( $cv->id == $variable->id ) {
+                                        $is_from_category = true;
+                                        break;
+                                    }
+                                }
+
+                                $is_selected = in_array( $variable->id, $selected_variable_ids );
+                                $selected_values = isset( $selected_values_map[ $variable->id ] ) ? $selected_values_map[ $variable->id ] : '';
+                                $all_values = array_map( 'trim', explode( ',', $variable->values ) );
+                                $selected_values_array = array_map( 'trim', explode( ',', $selected_values ) );
+                                ?>
+
+                                <div class="variable-selection-row" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; <?php echo $is_from_category ? 'background: #f9f9f9;' : ''; ?>">
+                                    <div style="margin-bottom: 10px;">
+                                        <label style="display: flex; align-items: center;">
+                                            <input type="checkbox"
+                                                   name="selected_variables[]"
+                                                   value="<?php echo esc_attr( $variable->id ); ?>"
+                                                   class="variable-checkbox"
+                                                   data-variable-id="<?php echo esc_attr( $variable->id ); ?>"
+                                                   <?php checked( $is_selected ); ?>>
+                                            <strong style="margin-left: 10px; font-size: 14px;">
+                                                <?php echo esc_html( $variable->name ); ?>
+                                            </strong>
+                                            <?php if ( $is_from_category ) : ?>
+                                                <span class="uc-badge uc-badge-info" style="margin-left: 10px; font-size: 11px;">
+                                                    <?php esc_html_e( 'From Category', 'u-commerce' ); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </label>
+                                    </div>
+
+                                    <div class="variable-values-container"
+                                         id="values-container-<?php echo esc_attr( $variable->id ); ?>"
+                                         style="margin-left: 30px; <?php echo ! $is_selected ? 'display: none;' : ''; ?>">
+                                        <p class="description" style="margin-bottom: 8px;">
+                                            <?php esc_html_e( 'Select values for this variable:', 'u-commerce' ); ?>
+                                        </p>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                            <?php foreach ( $all_values as $value ) : ?>
+                                                <label style="display: inline-flex; align-items: center; padding: 5px 10px; background: #fff; border: 1px solid #ddd; border-radius: 3px;">
+                                                    <input type="checkbox"
+                                                           name="variable_values_<?php echo esc_attr( $variable->id ); ?>[]"
+                                                           value="<?php echo esc_attr( $value ); ?>"
+                                                           <?php checked( in_array( $value, $selected_values_array ) ); ?>>
+                                                    <span style="margin-left: 5px;"><?php echo esc_html( $value ); ?></span>
+                                                </label>
+                                            <?php endforeach; ?>
                                         </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
+                        </div>
 
-                    <button type="button" id="add-variable" class="button">
-                        <?php esc_html_e( '+ Add Variable', 'u-commerce' ); ?>
-                    </button>
+                        <p class="description" style="margin-top: 15px;">
+                            <strong><?php esc_html_e( 'Note:', 'u-commerce' ); ?></strong>
+                            <?php esc_html_e( 'To add new variables, go to U-Commerce → Variables and create them there.', 'u-commerce' ); ?>
+                        </p>
+                    <?php else : ?>
+                        <div style="padding: 40px; text-align: center; background: #f9f9f9; border: 1px dashed #ddd; border-radius: 4px;">
+                            <p style="font-size: 16px; color: #666; margin-bottom: 15px;">
+                                <?php esc_html_e( 'No variables available.', 'u-commerce' ); ?>
+                            </p>
+                            <a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-variables' ) ); ?>" class="button button-primary">
+                                <?php esc_html_e( 'Create Variables', 'u-commerce' ); ?>
+                            </a>
+                        </div>
+                    <?php endif; ?>
 
                 <?php else : ?>
                     <!-- Basic Info Tab -->
@@ -310,30 +387,18 @@ jQuery(document).ready(function($) {
         $('#product_sku').val(sku);
     });
 
-    // Add variable row
-    $('#add-variable').on('click', function() {
-        var html = '<div class="variable-row" style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">' +
-            '<div style="display: flex; gap: 15px; align-items: start;">' +
-            '<div style="flex: 1;">' +
-            '<label><strong><?php esc_html_e( 'Variable Name', 'u-commerce' ); ?></strong></label>' +
-            '<input type="text" name="variable_name[]" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., Size, Color, Material', 'u-commerce' ); ?>">' +
-            '</div>' +
-            '<div style="flex: 2;">' +
-            '<label><strong><?php esc_html_e( 'Values (comma-separated)', 'u-commerce' ); ?></strong></label>' +
-            '<input type="text" name="variable_values[]" class="large-text" placeholder="<?php esc_attr_e( 'e.g., Small, Medium, Large', 'u-commerce' ); ?>">' +
-            '</div>' +
-            '<div style="padding-top: 25px;">' +
-            '<button type="button" class="button remove-variable"><?php esc_html_e( 'Remove', 'u-commerce' ); ?></button>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
+    // Toggle variable values container when checkbox is clicked
+    $('.variable-checkbox').on('change', function() {
+        var variableId = $(this).data('variable-id');
+        var valuesContainer = $('#values-container-' + variableId);
 
-        $('#variables-container').append(html);
-    });
-
-    // Remove variable row
-    $(document).on('click', '.remove-variable', function() {
-        $(this).closest('.variable-row').remove();
+        if ($(this).is(':checked')) {
+            valuesContainer.slideDown();
+        } else {
+            valuesContainer.slideUp();
+            // Uncheck all value checkboxes when variable is unchecked
+            valuesContainer.find('input[type="checkbox"]').prop('checked', false);
+        }
     });
 });
 </script>

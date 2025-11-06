@@ -40,6 +40,9 @@ if ( isset( $_POST['uc_variable_submit'] ) ) {
 		$existing_categories = $variables_handler->get_linked_categories( $variable_id );
 		$new_categories = isset( $_POST['linked_categories'] ) ? array_map( 'absint', $_POST['linked_categories'] ) : array();
 
+		// Track which categories are being newly added
+		$newly_added_categories = array_diff( $new_categories, $existing_categories );
+
 		// Remove unlinked categories
 		foreach ( $existing_categories as $cat_id ) {
 			if ( ! in_array( $cat_id, $new_categories ) ) {
@@ -52,6 +55,45 @@ if ( isset( $_POST['uc_variable_submit'] ) ) {
 			if ( ! in_array( $cat_id, $existing_categories ) ) {
 				$variables_handler->link_to_category( $cat_id, $variable_id );
 			}
+		}
+
+		// Check if user wants to update products in the categories
+		$update_products = isset( $_POST['update_category_products'] ) && $_POST['update_category_products'] === 'yes';
+
+		if ( $update_products && ! empty( $newly_added_categories ) ) {
+			// Get all products in the newly added categories
+			global $wpdb;
+			$products_table = $categories_handler->database->get_table( 'products' );
+
+			foreach ( $newly_added_categories as $cat_id ) {
+				$products = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT id FROM {$products_table} WHERE category_id = %d",
+						$cat_id
+					)
+				);
+
+				// Link this variable to each product (if not already linked)
+				foreach ( $products as $product ) {
+					// Check if product already has this variable
+					$existing_link = $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT id FROM {$wpdb->prefix}ucommerce_product_variable_values
+							WHERE product_id = %d AND variable_id = %d",
+							$product->id,
+							$variable_id
+						)
+					);
+
+					// Only add if not already linked
+					if ( ! $existing_link ) {
+						// Link with all values from the variable (user can customize per product later)
+						$variables_handler->link_to_product( $product->id, $variable_id, $data['values'] );
+					}
+				}
+			}
+
+			$message .= ' ' . __( 'Variable has been added to all products in the selected categories.', 'u-commerce' );
 		}
 	} else {
 		// Create
@@ -274,6 +316,20 @@ $all_categories = $categories_handler->get_all();
 								<?php endif; ?>
 							</div>
 							<p class="description"><?php esc_html_e( 'Select categories that should have this variable', 'u-commerce' ); ?></p>
+
+							<!-- Option to update existing products -->
+							<div id="update-products-option" style="margin-top: 15px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; display: none;">
+								<label style="display: flex; align-items: start;">
+									<input type="checkbox" name="update_category_products" value="yes" style="margin-top: 3px;">
+									<span style="margin-left: 8px;">
+										<strong><?php esc_html_e( 'Also add this variable to existing products in the newly selected categories', 'u-commerce' ); ?></strong>
+										<br>
+										<small style="color: #666;">
+											<?php esc_html_e( 'This will automatically add this variable (with all its values) to all products that belong to the newly selected categories. Products can customize their values later.', 'u-commerce' ); ?>
+										</small>
+									</span>
+								</label>
+							</div>
 						</td>
 					</tr>
 				</table>
@@ -303,6 +359,9 @@ jQuery(document).ready(function($) {
 		$('#variable-modal').fadeIn();
 	});
 
+	// Track initially selected categories for edit mode
+	var initiallySelectedCategories = [];
+
 	// Open modal for edit
 	$('.edit-variable-btn').on('click', function() {
 		$('#modal-title').text('<?php esc_html_e( 'Edit Variable', 'u-commerce' ); ?>');
@@ -314,13 +373,45 @@ jQuery(document).ready(function($) {
 		// Check linked categories
 		$('.category-checkbox').prop('checked', false);
 		var linkedCategories = $(this).data('categories').toString().split(',');
+		initiallySelectedCategories = [];
 		linkedCategories.forEach(function(catId) {
 			if (catId) {
 				$('.category-checkbox[value="' + catId + '"]').prop('checked', true);
+				initiallySelectedCategories.push(catId);
 			}
 		});
 
+		// Hide update products option initially
+		$('#update-products-option').hide();
+
 		$('#variable-modal').fadeIn();
+	});
+
+	// Show update products option when categories change in edit mode
+	$('.category-checkbox').on('change', function() {
+		var variableId = $('#variable_id').val();
+
+		// Only show option if editing (not creating)
+		if (variableId) {
+			var currentlySelected = [];
+			$('.category-checkbox:checked').each(function() {
+				currentlySelected.push($(this).val());
+			});
+
+			// Check if any new categories are added
+			var hasNewCategories = false;
+			currentlySelected.forEach(function(catId) {
+				if (initiallySelectedCategories.indexOf(catId) === -1) {
+					hasNewCategories = true;
+				}
+			});
+
+			if (hasNewCategories) {
+				$('#update-products-option').slideDown();
+			} else {
+				$('#update-products-option').slideUp();
+			}
+		}
 	});
 
 	// Close modal
