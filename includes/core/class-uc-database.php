@@ -42,19 +42,21 @@ class UC_Database {
 
         // Initialize table names
         $this->tables = array(
-            'categories'      => $wpdb->prefix . 'ucommerce_product_categories',
-            'variables'       => $wpdb->prefix . 'ucommerce_product_variables',
-            'centers'         => $wpdb->prefix . 'ucommerce_centers',
-            'products'        => $wpdb->prefix . 'ucommerce_products',
-            'inventory'       => $wpdb->prefix . 'ucommerce_inventory',
-            'pricing'         => $wpdb->prefix . 'ucommerce_pricing',
-            'purchase_bills'  => $wpdb->prefix . 'ucommerce_purchase_bills',
-            'purchase_items'  => $wpdb->prefix . 'ucommerce_purchase_items',
-            'sales_bills'     => $wpdb->prefix . 'ucommerce_sales_bills',
-            'sales_items'     => $wpdb->prefix . 'ucommerce_sales_items',
-            'vendors'         => $wpdb->prefix . 'ucommerce_vendors',
-            'customers'       => $wpdb->prefix . 'ucommerce_customers',
-            'barcodes'        => $wpdb->prefix . 'ucommerce_barcodes',
+            'categories'              => $wpdb->prefix . 'ucommerce_product_categories',
+            'variables'               => $wpdb->prefix . 'ucommerce_product_variables',
+            'category_variables'      => $wpdb->prefix . 'ucommerce_category_variables',
+            'product_variable_values' => $wpdb->prefix . 'ucommerce_product_variable_values',
+            'centers'                 => $wpdb->prefix . 'ucommerce_centers',
+            'products'                => $wpdb->prefix . 'ucommerce_products',
+            'inventory'               => $wpdb->prefix . 'ucommerce_inventory',
+            'pricing'                 => $wpdb->prefix . 'ucommerce_pricing',
+            'purchase_bills'          => $wpdb->prefix . 'ucommerce_purchase_bills',
+            'purchase_items'          => $wpdb->prefix . 'ucommerce_purchase_items',
+            'sales_bills'             => $wpdb->prefix . 'ucommerce_sales_bills',
+            'sales_items'             => $wpdb->prefix . 'ucommerce_sales_items',
+            'vendors'                 => $wpdb->prefix . 'ucommerce_vendors',
+            'customers'               => $wpdb->prefix . 'ucommerce_customers',
+            'barcodes'                => $wpdb->prefix . 'ucommerce_barcodes',
         );
     }
 
