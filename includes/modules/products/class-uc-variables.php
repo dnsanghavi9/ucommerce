@@ -35,7 +35,7 @@ class UC_Variables {
 	 */
 	public function __construct() {
 		$this->database   = new UC_Database();
-		$this->table_name = $this->database->get_table( 'product_variables' );
+		$this->table_name = $this->database->get_table( 'variables' );
 	}
 
 	/**
@@ -89,7 +89,7 @@ class UC_Variables {
 			'values' => isset( $data['values'] ) ? sanitize_textarea_field( $data['values'] ) : '',
 		);
 
-		return $this->database->insert( 'product_variables', $prepared_data );
+		return $this->database->insert( 'variables', $prepared_data );
 	}
 
 	/**
@@ -114,7 +114,7 @@ class UC_Variables {
 			$prepared_data['values'] = sanitize_textarea_field( $data['values'] );
 		}
 
-		return $this->database->update( 'product_variables', $id, $prepared_data );
+		return $this->database->update( 'variables', $prepared_data, array( 'id' => $id ) ) !== false;
 	}
 
 	/**
@@ -132,7 +132,7 @@ class UC_Variables {
 		$wpdb->delete( $category_variables_table, array( 'variable_id' => $id ) );
 		$wpdb->delete( $product_variables_table, array( 'variable_id' => $id ) );
 
-		return $this->database->delete( 'product_variables', $id );
+		return $this->database->delete( 'variables', array( 'id' => $id ) ) !== false;
 	}
 
 	/**
@@ -141,7 +141,7 @@ class UC_Variables {
 	 * @return int Total count.
 	 */
 	public function get_count() {
-		return $this->database->get_count( 'product_variables' );
+		return $this->database->get_count( 'variables' );
 	}
 
 	/**
