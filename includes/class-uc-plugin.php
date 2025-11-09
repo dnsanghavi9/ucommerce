@@ -170,6 +170,9 @@ class UC_Plugin {
         // AJAX handlers for categories
         add_action( 'wp_ajax_uc_get_category', array( $this, 'ajax_get_category' ) );
         add_action( 'wp_ajax_uc_save_category', array( $this, 'ajax_save_category' ) );
+
+        // AJAX handler for inventory stock check
+        add_action( 'wp_ajax_uc_get_stock', array( $this, 'ajax_get_stock' ) );
     }
 
     /**
@@ -335,6 +338,23 @@ class UC_Plugin {
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to save category.', 'u-commerce' ) ) );
         }
+    }
+
+    /**
+     * AJAX handler: Get stock quantity for product at center.
+     */
+    public function ajax_get_stock() {
+        $product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+        $center_id = isset( $_POST['center_id'] ) ? absint( $_POST['center_id'] ) : 0;
+
+        if ( ! $product_id || ! $center_id ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid parameters.', 'u-commerce' ) ) );
+        }
+
+        $inventory = new UC_Inventory();
+        $stock = $inventory->get_quantity( $product_id, $center_id );
+
+        wp_send_json_success( array( 'quantity' => $stock ) );
     }
 
     /**

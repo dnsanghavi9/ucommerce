@@ -56,17 +56,106 @@ if ( $is_edit ) {
 	<?php endif; ?>
 
 	<?php if ( $active_tab === 'history' && $is_edit ) : ?>
-		<!-- History Tab (Placeholder for future) -->
+		<!-- History Tab - Purchase Bills -->
+		<?php
+		// Get purchase bills for this vendor
+		global $wpdb;
+		$database = new UC_Database();
+
+		$purchase_bills_table = $database->get_table( 'purchase_bills' );
+		$centers_table = $database->get_table( 'centers' );
+
+		$query = $wpdb->prepare(
+			"SELECT
+				pb.*,
+				c.name as center_name,
+				(SELECT COUNT(*) FROM {$database->get_table( 'purchase_items' )} WHERE purchase_bill_id = pb.id) as items_count
+			FROM {$purchase_bills_table} pb
+			LEFT JOIN {$centers_table} c ON pb.center_id = c.id
+			WHERE pb.vendor_id = %d
+			ORDER BY pb.bill_date DESC, pb.id DESC",
+			$vendor->id
+		);
+
+		$purchase_bills = $wpdb->get_results( $query );
+
+		// Calculate totals
+		$total_bills = count( $purchase_bills );
+		$total_amount = 0;
+		if ( $purchase_bills ) {
+			$total_amount = array_sum( wp_list_pluck( $purchase_bills, 'total_amount' ) );
+		}
+		?>
+
 		<div class="uc-card">
-			<h2><?php esc_html_e( 'Vendor History', 'u-commerce' ); ?></h2>
+			<h2><?php esc_html_e( 'Purchase History', 'u-commerce' ); ?></h2>
 			<p class="description">
-				<?php esc_html_e( 'This section will display purchase history, payment details, and transaction records.', 'u-commerce' ); ?>
+				<?php esc_html_e( 'All purchase bills from this vendor:', 'u-commerce' ); ?>
 			</p>
-			<div style="padding: 40px; text-align: center; background: #f9f9f9; border: 2px dashed #ddd; margin-top: 20px;">
-				<p style="color: #999; font-size: 16px;">
-					<?php esc_html_e( 'History features will be available after implementing the Bills module.', 'u-commerce' ); ?>
-				</p>
+
+			<!-- Summary -->
+			<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0;">
+				<div style="padding: 15px; background: #f0f6fc; border-left: 4px solid #0073aa;">
+					<div style="font-size: 14px; color: #666; margin-bottom: 5px;"><?php esc_html_e( 'Total Bills', 'u-commerce' ); ?></div>
+					<div style="font-size: 24px; font-weight: bold; color: #0073aa;"><?php echo number_format( $total_bills ); ?></div>
+				</div>
+				<div style="padding: 15px; background: #f0f6fc; border-left: 4px solid #46b450;">
+					<div style="font-size: 14px; color: #666; margin-bottom: 5px;"><?php esc_html_e( 'Total Amount', 'u-commerce' ); ?></div>
+					<div style="font-size: 24px; font-weight: bold; color: #46b450;">₹<?php echo number_format( $total_amount, 2 ); ?></div>
+				</div>
 			</div>
+
+			<?php if ( $purchase_bills ) : ?>
+				<table class="wp-list-table widefat fixed striped">
+					<thead>
+						<tr>
+							<th style="width: 120px;"><?php esc_html_e( 'Bill Number', 'u-commerce' ); ?></th>
+							<th style="width: 100px;"><?php esc_html_e( 'Date', 'u-commerce' ); ?></th>
+							<th><?php esc_html_e( 'Center', 'u-commerce' ); ?></th>
+							<th style="width: 80px; text-align: center;"><?php esc_html_e( 'Items', 'u-commerce' ); ?></th>
+							<th style="width: 120px; text-align: right;"><?php esc_html_e( 'Total Amount', 'u-commerce' ); ?></th>
+							<th style="width: 100px;"><?php esc_html_e( 'Status', 'u-commerce' ); ?></th>
+							<th style="width: 100px;"><?php esc_html_e( 'Action', 'u-commerce' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $purchase_bills as $bill ) : ?>
+							<tr>
+								<td><strong><?php echo esc_html( $bill->bill_number ); ?></strong></td>
+								<td><?php echo esc_html( date( 'Y-m-d', strtotime( $bill->bill_date ) ) ); ?></td>
+								<td><?php echo esc_html( $bill->center_name ? $bill->center_name : '—' ); ?></td>
+								<td style="text-align: center;"><?php echo number_format( $bill->items_count ); ?></td>
+								<td style="text-align: right;"><strong>₹<?php echo number_format( $bill->total_amount, 2 ); ?></strong></td>
+								<td>
+									<span class="uc-badge uc-badge-<?php echo esc_attr( $bill->status === 'completed' ? 'success' : 'warning' ); ?>">
+										<?php echo esc_html( ucfirst( $bill->status ) ); ?>
+									</span>
+								</td>
+								<td>
+									<a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-purchase-bills&action=view&id=' . $bill->id ) ); ?>"
+									   class="button button-small">
+										<?php esc_html_e( 'View', 'u-commerce' ); ?>
+									</a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+					<tfoot>
+						<tr>
+							<th colspan="3" style="text-align: right;"><strong><?php esc_html_e( 'Totals:', 'u-commerce' ); ?></strong></th>
+							<th style="text-align: center;"><strong><?php echo number_format( array_sum( wp_list_pluck( $purchase_bills, 'items_count' ) ) ); ?></strong></th>
+							<th style="text-align: right;"><strong>₹<?php echo number_format( $total_amount, 2 ); ?></strong></th>
+							<th colspan="2"></th>
+						</tr>
+					</tfoot>
+				</table>
+			<?php else : ?>
+				<div style="padding: 40px; text-align: center; background: #f9f9f9; border: 1px dashed #ddd; border-radius: 4px; margin-top: 20px;">
+					<p style="font-size: 16px; color: #666;">
+						<?php esc_html_e( 'No purchase bills from this vendor yet.', 'u-commerce' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
 		</div>
 	<?php else : ?>
 		<!-- Form for Basic and Contacts tabs -->
@@ -106,7 +195,8 @@ if ( $is_edit ) {
 													   name="contact_mobiles[]"
 													   value="<?php echo esc_attr( $contact->contact_mobile ); ?>"
 													   class="regular-text"
-													   pattern="[0-9]{10,15}"
+													   pattern="[6-9][0-9]{9}"
+													   title="10 digit mobile number starting with 6, 7, 8, or 9"
 													   required>
 											</td>
 											<td style="width: 100px;">
@@ -142,7 +232,7 @@ if ( $is_edit ) {
 								'<th scope="row" style="width: 150px;"><label><?php esc_html_e( 'Contact Name', 'u-commerce' ); ?> <span style="color: red;">*</span></label></th>' +
 								'<td style="padding-right: 20px;"><input type="text" name="contact_names[]" class="regular-text" required></td>' +
 								'<th scope="row" style="width: 150px;"><label><?php esc_html_e( 'Mobile Number', 'u-commerce' ); ?> <span style="color: red;">*</span></label></th>' +
-								'<td><input type="tel" name="contact_mobiles[]" class="regular-text" pattern="[0-9]{10,15}" required></td>' +
+								'<td><input type="tel" name="contact_mobiles[]" class="regular-text" pattern="[6-9][0-9]{9}" title="10 digit mobile number starting with 6, 7, 8, or 9" required></td>' +
 								'<td style="width: 100px;"><button type="button" class="button remove-contact-btn" style="color: #b32d2e;"><?php esc_html_e( 'Remove', 'u-commerce' ); ?></button></td>' +
 								'</tr>' +
 								'</table>' +
@@ -192,10 +282,10 @@ if ( $is_edit ) {
 									   id="vendor_phone"
 									   value="<?php echo $is_edit ? esc_attr( $vendor->phone ) : ''; ?>"
 									   class="regular-text"
-									   pattern="[0-9]{10,15}"
-									   title="Phone number must be 10-15 digits"
+									   pattern="[6-9][0-9]{9}"
+									   title="10 digit mobile number starting with 6, 7, 8, or 9"
 									   required>
-								<p class="description"><?php esc_html_e( 'Enter 10-15 digit phone number (numbers only).', 'u-commerce' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Enter 10 digit Indian mobile number (starting with 6, 7, 8, or 9).', 'u-commerce' ); ?></p>
 							</td>
 						</tr>
 
