@@ -91,7 +91,7 @@ class UC_Activator {
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             name varchar(100) NOT NULL,
             type varchar(50) NOT NULL,
-            values text NOT NULL,
+            `values` text NOT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY type (type)

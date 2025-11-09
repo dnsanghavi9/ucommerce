@@ -63,7 +63,8 @@ if ( isset( $_POST['uc_variable_submit'] ) ) {
 		if ( $update_products && ! empty( $newly_added_categories ) ) {
 			// Get all products in the newly added categories
 			global $wpdb;
-			$products_table = $categories_handler->database->get_table( 'products' );
+			$database = new UC_Database();
+			$products_table = $database->get_table( 'products' );
 
 			foreach ( $newly_added_categories as $cat_id ) {
 				$products = $wpdb->get_results(
