@@ -136,8 +136,20 @@ if ( $is_edit && ! empty( $product->variables ) ) {
                                     }
                                 }
 
+                                // Auto-select category variables by default (unless explicitly deselected)
                                 $is_selected = in_array( $variable->id, $selected_variable_ids );
+                                if ( ! $is_selected && $is_from_category ) {
+                                    // Auto-select category variables for new products or if not manually set
+                                    $is_selected = true;
+                                }
+
                                 $selected_values = isset( $selected_values_map[ $variable->id ] ) ? $selected_values_map[ $variable->id ] : '';
+
+                                // If from category and no values selected yet, select all values by default
+                                if ( $is_from_category && empty( $selected_values ) ) {
+                                    $selected_values = $variable->values;
+                                }
+
                                 $all_values = array_map( 'trim', explode( ',', $variable->values ) );
                                 $selected_values_array = array_map( 'trim', explode( ',', $selected_values ) );
                                 ?>
