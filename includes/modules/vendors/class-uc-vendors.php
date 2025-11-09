@@ -65,13 +65,12 @@ class UC_Vendors {
 	 */
 	public function create( $data ) {
 		$vendor_data = array(
-			'name'           => isset( $data['name'] ) ? sanitize_text_field( $data['name'] ) : '',
-			'contact_person' => isset( $data['contact_person'] ) ? sanitize_text_field( $data['contact_person'] ) : '',
-			'phone'          => isset( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '',
-			'email'          => isset( $data['email'] ) ? sanitize_email( $data['email'] ) : '',
-			'address'        => isset( $data['address'] ) ? sanitize_textarea_field( $data['address'] ) : '',
-			'gst_number'     => isset( $data['gst_number'] ) ? sanitize_text_field( $data['gst_number'] ) : '',
-			'status'         => isset( $data['status'] ) ? sanitize_text_field( $data['status'] ) : 'active',
+			'name'       => isset( $data['name'] ) ? sanitize_text_field( $data['name'] ) : '',
+			'phone'      => isset( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '',
+			'email'      => isset( $data['email'] ) ? sanitize_email( $data['email'] ) : '',
+			'address'    => isset( $data['address'] ) ? sanitize_textarea_field( $data['address'] ) : '',
+			'gst_number' => isset( $data['gst_number'] ) ? sanitize_text_field( $data['gst_number'] ) : '',
+			'status'     => isset( $data['status'] ) ? sanitize_text_field( $data['status'] ) : 'active',
 		);
 
 		return $this->database->insert( 'vendors', $vendor_data );
@@ -89,10 +88,6 @@ class UC_Vendors {
 
 		if ( isset( $data['name'] ) ) {
 			$vendor_data['name'] = sanitize_text_field( $data['name'] );
-		}
-
-		if ( isset( $data['contact_person'] ) ) {
-			$vendor_data['contact_person'] = sanitize_text_field( $data['contact_person'] );
 		}
 
 		if ( isset( $data['phone'] ) ) {

@@ -170,12 +170,6 @@ class UC_Plugin {
         // AJAX handlers for categories
         add_action( 'wp_ajax_uc_get_category', array( $this, 'ajax_get_category' ) );
         add_action( 'wp_ajax_uc_save_category', array( $this, 'ajax_save_category' ) );
-
-        // AJAX handlers for vendors
-        add_action( 'wp_ajax_uc_save_vendor', array( $this, 'ajax_save_vendor' ) );
-
-        // AJAX handlers for customers
-        add_action( 'wp_ajax_uc_save_customer', array( $this, 'ajax_save_customer' ) );
     }
 
     /**
@@ -340,89 +334,6 @@ class UC_Plugin {
             wp_send_json_success( array( 'message' => $message ) );
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to save category.', 'u-commerce' ) ) );
-        }
-    }
-
-    /**
-     * AJAX handler: Save vendor.
-     */
-    public function ajax_save_vendor() {
-        check_ajax_referer( 'uc_save_vendor', 'nonce' );
-
-        if ( ! current_user_can( 'u_commerce_manage_vendors' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'u-commerce' ) ) );
-        }
-
-        $vendor_id = isset( $_POST['vendor_id'] ) ? absint( $_POST['vendor_id'] ) : 0;
-        $data = array(
-            'name'           => isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '',
-            'contact_person' => isset( $_POST['contact_person'] ) ? sanitize_text_field( $_POST['contact_person'] ) : '',
-            'phone'          => isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '',
-            'email'          => isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '',
-            'address'        => isset( $_POST['address'] ) ? sanitize_textarea_field( $_POST['address'] ) : '',
-            'gst_number'     => isset( $_POST['gst_number'] ) ? sanitize_text_field( $_POST['gst_number'] ) : '',
-            'status'         => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'active',
-        );
-
-        if ( empty( $data['name'] ) ) {
-            wp_send_json_error( array( 'message' => __( 'Vendor name is required.', 'u-commerce' ) ) );
-        }
-
-        $vendors = new UC_Vendors();
-
-        if ( $vendor_id ) {
-            $result = $vendors->update( $vendor_id, $data );
-            $message = __( 'Vendor updated successfully.', 'u-commerce' );
-        } else {
-            $result = $vendors->create( $data );
-            $message = __( 'Vendor created successfully.', 'u-commerce' );
-        }
-
-        if ( $result ) {
-            wp_send_json_success( array( 'message' => $message ) );
-        } else {
-            wp_send_json_error( array( 'message' => __( 'Failed to save vendor.', 'u-commerce' ) ) );
-        }
-    }
-
-    /**
-     * AJAX handler: Save customer.
-     */
-    public function ajax_save_customer() {
-        check_ajax_referer( 'uc_save_customer', 'nonce' );
-
-        if ( ! current_user_can( 'u_commerce_manage_customers' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'u-commerce' ) ) );
-        }
-
-        $customer_id = isset( $_POST['customer_id'] ) ? absint( $_POST['customer_id'] ) : 0;
-        $data = array(
-            'name'       => isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '',
-            'phone'      => isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '',
-            'email'      => isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '',
-            'address'    => isset( $_POST['address'] ) ? sanitize_textarea_field( $_POST['address'] ) : '',
-            'gst_number' => isset( $_POST['gst_number'] ) ? sanitize_text_field( $_POST['gst_number'] ) : '',
-            'status'     => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'active',
-        );
-
-        if ( empty( $data['name'] ) ) {
-            wp_send_json_error( array( 'message' => __( 'Customer name is required.', 'u-commerce' ) ) );
-        }
-
-        $customers = new UC_Customers();
-
-        if ( $customer_id ) {
-            $result = $customers->update( $customer_id, $data );
-            $message = __( 'Customer updated successfully.', 'u-commerce' );
-        } else {
-            $result = $customers->create( $data );
-            $message = __( 'Customer created successfully.', 'u-commerce' );
-        }
-
-        if ( $result ) {
-            wp_send_json_success( array( 'message' => $message ) );
-        } else {
-            wp_send_json_error( array( 'message' => __( 'Failed to save customer.', 'u-commerce' ) ) );
         }
     }
 
