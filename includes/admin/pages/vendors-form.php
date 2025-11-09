@@ -106,7 +106,8 @@ if ( $is_edit ) {
 													   name="contact_mobiles[]"
 													   value="<?php echo esc_attr( $contact->contact_mobile ); ?>"
 													   class="regular-text"
-													   pattern="[0-9]{10,15}"
+													   pattern="[6-9][0-9]{9}"
+													   title="10 digit mobile number starting with 6, 7, 8, or 9"
 													   required>
 											</td>
 											<td style="width: 100px;">
@@ -142,7 +143,7 @@ if ( $is_edit ) {
 								'<th scope="row" style="width: 150px;"><label><?php esc_html_e( 'Contact Name', 'u-commerce' ); ?> <span style="color: red;">*</span></label></th>' +
 								'<td style="padding-right: 20px;"><input type="text" name="contact_names[]" class="regular-text" required></td>' +
 								'<th scope="row" style="width: 150px;"><label><?php esc_html_e( 'Mobile Number', 'u-commerce' ); ?> <span style="color: red;">*</span></label></th>' +
-								'<td><input type="tel" name="contact_mobiles[]" class="regular-text" pattern="[0-9]{10,15}" required></td>' +
+								'<td><input type="tel" name="contact_mobiles[]" class="regular-text" pattern="[6-9][0-9]{9}" title="10 digit mobile number starting with 6, 7, 8, or 9" required></td>' +
 								'<td style="width: 100px;"><button type="button" class="button remove-contact-btn" style="color: #b32d2e;"><?php esc_html_e( 'Remove', 'u-commerce' ); ?></button></td>' +
 								'</tr>' +
 								'</table>' +
@@ -192,10 +193,10 @@ if ( $is_edit ) {
 									   id="vendor_phone"
 									   value="<?php echo $is_edit ? esc_attr( $vendor->phone ) : ''; ?>"
 									   class="regular-text"
-									   pattern="[0-9]{10,15}"
-									   title="Phone number must be 10-15 digits"
+									   pattern="[6-9][0-9]{9}"
+									   title="10 digit mobile number starting with 6, 7, 8, or 9"
 									   required>
-								<p class="description"><?php esc_html_e( 'Enter 10-15 digit phone number (numbers only).', 'u-commerce' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Enter 10 digit Indian mobile number (starting with 6, 7, 8, or 9).', 'u-commerce' ); ?></p>
 							</td>
 						</tr>
 

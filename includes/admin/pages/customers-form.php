@@ -91,10 +91,10 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'bas
 								   id="customer_phone"
 								   value="<?php echo $is_edit ? esc_attr( $customer->phone ) : ''; ?>"
 								   class="regular-text"
-								   pattern="[0-9]{10,15}"
-								   title="Phone number must be 10-15 digits"
+								   pattern="[6-9][0-9]{9}"
+								   title="10 digit mobile number starting with 6, 7, 8, or 9"
 								   required>
-							<p class="description"><?php esc_html_e( 'Enter 10-15 digit phone number (numbers only). Must be unique.', 'u-commerce' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Enter 10 digit Indian mobile number (starting with 6, 7, 8, or 9). Must be unique.', 'u-commerce' ); ?></p>
 						</td>
 					</tr>
 

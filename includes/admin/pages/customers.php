@@ -38,8 +38,8 @@ if ( isset( $_POST['uc_customer_submit'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Customer name is required.', 'u-commerce' ) . '</p></div>';
 	} elseif ( empty( $data['phone'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Phone number is required.', 'u-commerce' ) . '</p></div>';
-	} elseif ( ! preg_match( '/^[0-9]{10,15}$/', $data['phone'] ) ) {
-		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Phone number must be 10-15 digits.', 'u-commerce' ) . '</p></div>';
+	} elseif ( ! preg_match( '/^[6-9][0-9]{9}$/', $data['phone'] ) ) {
+		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid phone number. Must be 10 digits starting with 6, 7, 8, or 9.', 'u-commerce' ) . '</p></div>';
 	} elseif ( ! empty( $data['email'] ) && ! is_email( $data['email'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid email address.', 'u-commerce' ) . '</p></div>';
 	} else {
