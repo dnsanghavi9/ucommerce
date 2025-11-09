@@ -65,12 +65,11 @@ class UC_Customers {
 	 */
 	public function create( $data ) {
 		$customer_data = array(
-			'name'       => isset( $data['name'] ) ? sanitize_text_field( $data['name'] ) : '',
-			'phone'      => isset( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '',
-			'email'      => isset( $data['email'] ) ? sanitize_email( $data['email'] ) : '',
-			'address'    => isset( $data['address'] ) ? sanitize_textarea_field( $data['address'] ) : '',
-			'gst_number' => isset( $data['gst_number'] ) ? sanitize_text_field( $data['gst_number'] ) : '',
-			'status'     => isset( $data['status'] ) ? sanitize_text_field( $data['status'] ) : 'active',
+			'name'    => isset( $data['name'] ) ? sanitize_text_field( $data['name'] ) : '',
+			'phone'   => isset( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '',
+			'email'   => isset( $data['email'] ) ? sanitize_email( $data['email'] ) : '',
+			'address' => isset( $data['address'] ) ? sanitize_textarea_field( $data['address'] ) : '',
+			'status'  => isset( $data['status'] ) ? sanitize_text_field( $data['status'] ) : 'active',
 		);
 
 		return $this->database->insert( 'customers', $customer_data );
@@ -100,10 +99,6 @@ class UC_Customers {
 
 		if ( isset( $data['address'] ) ) {
 			$customer_data['address'] = sanitize_textarea_field( $data['address'] );
-		}
-
-		if ( isset( $data['gst_number'] ) ) {
-			$customer_data['gst_number'] = sanitize_text_field( $data['gst_number'] );
 		}
 
 		if ( isset( $data['status'] ) ) {

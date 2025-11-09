@@ -235,8 +235,7 @@ class UC_Activator {
         $sql[] = "CREATE TABLE IF NOT EXISTS {$table_prefix}ucommerce_vendors (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             name varchar(200) NOT NULL,
-            contact_person varchar(200),
-            phone varchar(20),
+            phone varchar(20) NOT NULL,
             email varchar(100),
             address text,
             gst_number varchar(50),
@@ -244,23 +243,34 @@ class UC_Activator {
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
+            UNIQUE KEY phone (phone),
             KEY status (status)
+        ) $charset_collate;";
+
+        // Vendor Contact Persons Table
+        $sql[] = "CREATE TABLE IF NOT EXISTS {$table_prefix}ucommerce_vendor_contacts (
+            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            vendor_id bigint(20) UNSIGNED NOT NULL,
+            contact_name varchar(200) NOT NULL,
+            contact_mobile varchar(20) NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY vendor_id (vendor_id)
         ) $charset_collate;";
 
         // Customers Table
         $sql[] = "CREATE TABLE IF NOT EXISTS {$table_prefix}ucommerce_customers (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             name varchar(200) NOT NULL,
-            phone varchar(20),
+            phone varchar(20) NOT NULL,
             email varchar(100),
             address text,
-            gst_number varchar(50),
             status varchar(20) NOT NULL DEFAULT 'active',
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
+            UNIQUE KEY phone (phone),
             KEY status (status),
-            KEY phone (phone),
             KEY email (email)
         ) $charset_collate;";
 

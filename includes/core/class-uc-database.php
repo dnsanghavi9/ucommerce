@@ -55,6 +55,7 @@ class UC_Database {
             'sales_bills'             => $wpdb->prefix . 'ucommerce_sales_bills',
             'sales_items'             => $wpdb->prefix . 'ucommerce_sales_items',
             'vendors'                 => $wpdb->prefix . 'ucommerce_vendors',
+            'vendor_contacts'         => $wpdb->prefix . 'ucommerce_vendor_contacts',
             'customers'               => $wpdb->prefix . 'ucommerce_customers',
             'barcodes'                => $wpdb->prefix . 'ucommerce_barcodes',
         );
