@@ -21,6 +21,10 @@ $bill_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
 $sales_bills_handler = new UC_Sales_Bills();
 
+// Variable to store form data for preservation on errors
+$form_data = null;
+$form_items = null;
+
 // Handle form submission
 if ( isset( $_POST['uc_sales_bill_submit'] ) ) {
 	check_admin_referer( 'uc_sales_bill_save', 'uc_sales_bill_nonce' );
@@ -37,8 +41,12 @@ if ( isset( $_POST['uc_sales_bill_submit'] ) ) {
 	// Validate required fields
 	if ( empty( $data['center_id'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Center is required.', 'u-commerce' ) . '</p></div>';
+		$form_data = (object) $data; // Preserve form data
+		$form_items = isset( $_POST['items'] ) ? $_POST['items'] : array();
 	} elseif ( empty( $_POST['items'] ) || ! is_array( $_POST['items'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'At least one item is required.', 'u-commerce' ) . '</p></div>';
+		$form_data = (object) $data; // Preserve form data
+		$form_items = array();
 	} else {
 		// Prepare items
 		$items = array();
@@ -54,6 +62,8 @@ if ( isset( $_POST['uc_sales_bill_submit'] ) ) {
 
 		if ( empty( $items ) ) {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'At least one valid item is required.', 'u-commerce' ) . '</p></div>';
+			$form_data = (object) $data; // Preserve form data
+			$form_items = isset( $_POST['items'] ) ? $_POST['items'] : array();
 		} else {
 			if ( $bill_id ) {
 				// For editing, we need to handle it differently
@@ -70,6 +80,8 @@ if ( isset( $_POST['uc_sales_bill_submit'] ) ) {
 					exit;
 				} else {
 					echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Failed to create sales bill. Please check inventory availability.', 'u-commerce' ) . '</p></div>';
+					$form_data = (object) $data; // Preserve form data
+					$form_items = isset( $_POST['items'] ) ? $_POST['items'] : array();
 				}
 			}
 		}
@@ -101,7 +113,9 @@ if ( $action === 'view' && $bill_id ) {
 	include UC_PLUGIN_DIR . 'includes/admin/pages/sales-bills-view.php';
 } elseif ( $action === 'new' ) {
 	// Show add form
-	$bill = null;
+	// Use form_data if validation failed
+	$bill = $form_data;
+	$bill_items = $form_items;
 	include UC_PLUGIN_DIR . 'includes/admin/pages/sales-bills-form.php';
 } else {
 	// Show list

@@ -21,6 +21,9 @@ $center_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
 $centers_handler = new UC_Centers();
 
+// Variable to store form data for preservation on errors
+$form_data = null;
+
 // Handle form submission
 if ( isset( $_POST['uc_center_submit'] ) ) {
     check_admin_referer( 'uc_center_save', 'uc_center_nonce' );
@@ -47,6 +50,11 @@ if ( isset( $_POST['uc_center_submit'] ) ) {
     if ( ! empty( $data['email'] ) && ! is_email( $data['email'] ) ) {
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid email address.', 'u-commerce' ) . '</p></div>';
         $validation_passed = false;
+    }
+
+    // Preserve form data on validation errors
+    if ( ! $validation_passed ) {
+        $form_data = (object) $data;
     }
 
     if ( $validation_passed ) {
@@ -95,10 +103,16 @@ if ( $action === 'edit' && $center_id ) {
     if ( ! $center ) {
         wp_die( esc_html__( 'Center not found.', 'u-commerce' ) );
     }
+    // Use form_data if validation failed, otherwise use database data
+    if ( $form_data ) {
+        $center = $form_data;
+        $center->id = $center_id;
+    }
     include UC_PLUGIN_DIR . 'includes/admin/pages/centers-form.php';
 } elseif ( $action === 'new' ) {
     // Show add form
-    $center = null;
+    // Use form_data if validation failed
+    $center = $form_data;
     include UC_PLUGIN_DIR . 'includes/admin/pages/centers-form.php';
 } else {
     // Show list

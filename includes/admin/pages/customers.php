@@ -21,6 +21,9 @@ $customer_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
 $customers_handler = new UC_Customers();
 
+// Variable to store form data for preservation on errors
+$form_data = null;
+
 // Handle form submission
 if ( isset( $_POST['uc_customer_submit'] ) ) {
 	check_admin_referer( 'uc_customer_save', 'uc_customer_nonce' );
@@ -36,12 +39,16 @@ if ( isset( $_POST['uc_customer_submit'] ) ) {
 	// Validate required fields
 	if ( empty( $data['name'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Customer name is required.', 'u-commerce' ) . '</p></div>';
+		$form_data = (object) $data; // Preserve form data
 	} elseif ( empty( $data['phone'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Phone number is required.', 'u-commerce' ) . '</p></div>';
+		$form_data = (object) $data; // Preserve form data
 	} elseif ( ! preg_match( '/^[6-9][0-9]{9}$/', $data['phone'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid phone number. Must be 10 digits starting with 6, 7, 8, or 9.', 'u-commerce' ) . '</p></div>';
+		$form_data = (object) $data; // Preserve form data
 	} elseif ( ! empty( $data['email'] ) && ! is_email( $data['email'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid email address.', 'u-commerce' ) . '</p></div>';
+		$form_data = (object) $data; // Preserve form data
 	} else {
 		// Check phone uniqueness
 		global $wpdb;
@@ -56,6 +63,7 @@ if ( isset( $_POST['uc_customer_submit'] ) ) {
 
 		if ( $existing_customer ) {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Phone number already exists for another customer.', 'u-commerce' ) . '</p></div>';
+			$form_data = (object) $data; // Preserve form data
 		} else {
 			if ( $customer_id ) {
 				// Update
@@ -106,10 +114,16 @@ if ( $action === 'edit' && $customer_id ) {
 	if ( ! $customer ) {
 		wp_die( esc_html__( 'Customer not found.', 'u-commerce' ) );
 	}
+	// Use form_data if validation failed, otherwise use database data
+	if ( $form_data ) {
+		$customer = $form_data;
+		$customer->id = $customer_id;
+	}
 	include UC_PLUGIN_DIR . 'includes/admin/pages/customers-form.php';
 } elseif ( $action === 'new' ) {
 	// Show add form
-	$customer = null;
+	// Use form_data if validation failed
+	$customer = $form_data;
 	include UC_PLUGIN_DIR . 'includes/admin/pages/customers-form.php';
 } else {
 	// Show list

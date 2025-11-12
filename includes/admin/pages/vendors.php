@@ -21,6 +21,9 @@ $vendor_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
 $vendors_handler = new UC_Vendors();
 
+// Variable to store form data for preservation on errors
+$form_data = null;
+
 // Handle form submission
 if ( isset( $_POST['uc_vendor_submit'] ) ) {
 	check_admin_referer( 'uc_vendor_save', 'uc_vendor_nonce' );
@@ -72,14 +75,19 @@ if ( isset( $_POST['uc_vendor_submit'] ) ) {
 		// Validate required fields
 		if ( empty( $data['name'] ) ) {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Vendor name is required.', 'u-commerce' ) . '</p></div>';
+			$form_data = (object) $data; // Preserve form data
 		} elseif ( empty( $data['phone'] ) ) {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Phone number is required.', 'u-commerce' ) . '</p></div>';
+			$form_data = (object) $data; // Preserve form data
 		} elseif ( ! preg_match( '/^[6-9][0-9]{9}$/', $data['phone'] ) ) {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid phone number. Must be 10 digits starting with 6, 7, 8, or 9.', 'u-commerce' ) . '</p></div>';
+			$form_data = (object) $data; // Preserve form data
 		} elseif ( ! empty( $data['email'] ) && ! is_email( $data['email'] ) ) {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid email address.', 'u-commerce' ) . '</p></div>';
+			$form_data = (object) $data; // Preserve form data
 		} elseif ( ! empty( $data['gst_number'] ) && ! preg_match( '/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/', $data['gst_number'] ) ) {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid GST number format.', 'u-commerce' ) . '</p></div>';
+			$form_data = (object) $data; // Preserve form data
 		} else {
 			// Check phone uniqueness
 			global $wpdb;
@@ -94,6 +102,7 @@ if ( isset( $_POST['uc_vendor_submit'] ) ) {
 
 			if ( $existing_vendor ) {
 				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Phone number already exists for another vendor.', 'u-commerce' ) . '</p></div>';
+				$form_data = (object) $data; // Preserve form data
 			} else {
 				if ( $vendor_id ) {
 					// Update
@@ -145,10 +154,16 @@ if ( $action === 'edit' && $vendor_id ) {
 	if ( ! $vendor ) {
 		wp_die( esc_html__( 'Vendor not found.', 'u-commerce' ) );
 	}
+	// Use form_data if validation failed, otherwise use database data
+	if ( $form_data ) {
+		$vendor = $form_data;
+		$vendor->id = $vendor_id;
+	}
 	include UC_PLUGIN_DIR . 'includes/admin/pages/vendors-form.php';
 } elseif ( $action === 'new' ) {
 	// Show add form
-	$vendor = null;
+	// Use form_data if validation failed
+	$vendor = $form_data;
 	include UC_PLUGIN_DIR . 'includes/admin/pages/vendors-form.php';
 } else {
 	// Show list
