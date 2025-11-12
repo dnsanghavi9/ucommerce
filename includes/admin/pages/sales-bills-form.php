@@ -237,13 +237,14 @@ jQuery(document).ready(function($) {
 		calculateGrandTotal();
 	});
 
-	// Auto-fill unit price and fetch stock when product is selected
+	// Fetch stock when product is selected (unit price not auto-filled for sales)
 	$(document).on('change', '.item-product', function() {
 		var baseCost = $(this).find('option:selected').data('cost');
 		var productId = $(this).val();
 		var row = $(this).closest('.item-row');
 
-		row.find('.item-unit-price').val(baseCost);
+		// Don't auto-fill unit price for sales bills - let user enter selling price
+		// row.find('.item-unit-price').val(baseCost);
 
 		// Fetch stock for this product at selected center
 		if (productId && centerId) {

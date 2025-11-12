@@ -70,7 +70,7 @@ $all_centers = $centers_handler->get_all( array( 'where' => array() ) );
                     </td>
                 </tr>
 
-                <tr id="parent_center_row" style="<?php echo ( ! $is_edit || $center->type === 'main' ) ? 'display: none;' : ''; ?>">
+                <tr id="parent_center_row" style="<?php echo ( $is_edit && $center->type === 'main' ) ? 'display: none;' : ''; ?>">
                     <th scope="row">
                         <label for="center_parent">
                             <?php esc_html_e( 'Parent Center', 'u-commerce' ); ?>

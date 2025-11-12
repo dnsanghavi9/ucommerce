@@ -141,8 +141,8 @@ class UC_Categories {
     public function get_all( $args = array() ) {
         $defaults = array(
             'where'    => array(),
-            'orderby'  => 'name',
-            'order'    => 'ASC',
+            'orderby'  => 'created_at',
+            'order'    => 'DESC',
             'limit'    => null,
             'offset'   => null,
         );

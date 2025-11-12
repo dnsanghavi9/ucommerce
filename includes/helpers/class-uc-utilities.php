@@ -163,6 +163,21 @@ class UC_Utilities {
     }
 
     /**
+     * Format datetime.
+     *
+     * @param string $datetime Datetime string.
+     * @param string $format   Datetime format.
+     * @return string Formatted datetime.
+     */
+    public static function format_datetime( $datetime, $format = '' ) {
+        if ( empty( $format ) ) {
+            $format = self::get_datetime_format();
+        }
+
+        return date_i18n( $format, strtotime( $datetime ) );
+    }
+
+    /**
      * Calculate margin percentage.
      *
      * @param float $cost         Cost price.
