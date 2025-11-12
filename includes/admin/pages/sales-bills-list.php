@@ -41,6 +41,21 @@ foreach ( $all_centers as $center ) {
 
 	<div class="uc-card">
 		<?php if ( $bills ) : ?>
+			<!-- Search and Filter Controls -->
+			<div class="uc-table-controls" style="padding: 15px 15px 0; border-bottom: 1px solid #ddd;">
+				<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+					<input type="text" class="uc-table-search" placeholder="<?php esc_attr_e( 'Search by bill number, customer, or center...', 'u-commerce' ); ?>" style="flex: 1; min-width: 250px; padding: 6px 10px;">
+					<select class="uc-table-filter" data-filter="payment" style="padding: 6px 10px;">
+						<option value=""><?php esc_html_e( 'All Payment Status', 'u-commerce' ); ?></option>
+						<option value="paid"><?php esc_html_e( 'Paid', 'u-commerce' ); ?></option>
+						<option value="pending"><?php esc_html_e( 'Pending', 'u-commerce' ); ?></option>
+						<option value="partial"><?php esc_html_e( 'Partial', 'u-commerce' ); ?></option>
+					</select>
+					<button type="button" class="button uc-clear-search"><?php esc_html_e( 'Clear', 'u-commerce' ); ?></button>
+				</div>
+				<div class="uc-results-count" style="color: #666; font-size: 13px; margin-bottom: 10px;"></div>
+			</div>
+
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
 					<tr>
@@ -69,7 +84,7 @@ foreach ( $all_centers as $center ) {
 							<td><?php echo esc_html( isset( $centers_map[ $bill->center_id ] ) ? $centers_map[ $bill->center_id ] : '-' ); ?></td>
 							<td><?php echo esc_html( date( 'Y-m-d', strtotime( $bill->created_at ) ) ); ?></td>
 							<td style="text-align: right;"><strong>₹<?php echo number_format( $bill->total_amount, 2 ); ?></strong></td>
-							<td>
+							<td data-filter-payment="<?php echo esc_attr( $bill->payment_status ); ?>">
 								<span class="uc-badge uc-badge-<?php echo esc_attr( $bill->payment_status === 'paid' ? 'success' : 'warning' ); ?>">
 									<?php echo esc_html( ucfirst( $bill->payment_status ) ); ?>
 								</span>

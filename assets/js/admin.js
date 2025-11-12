@@ -44,6 +44,15 @@
 
             // Barcode scanner
             $(document).on('input', '.uc-barcode-input', this.handleBarcodeInput);
+
+            // Table search
+            $(document).on('input', '.uc-table-search', this.handleTableSearch);
+
+            // Table filters
+            $(document).on('change', '.uc-table-filter', this.handleTableFilter);
+
+            // Clear search
+            $(document).on('click', '.uc-clear-search', this.clearTableSearch);
         },
 
         /**
@@ -330,6 +339,113 @@
          */
         formatCurrency: function(amount) {
             return ucData.currency + ' ' + parseFloat(amount).toFixed(2);
+        },
+
+        /**
+         * Handle table search
+         */
+        handleTableSearch: function() {
+            const $search = $(this);
+            const $table = $search.closest('.uc-table-controls').next('table');
+            const searchTerm = $search.val().toLowerCase().trim();
+
+            // Debounce search
+            clearTimeout($search.data('timeout'));
+            $search.data('timeout', setTimeout(function() {
+                UCAdmin.filterTable($table);
+            }, 300));
+        },
+
+        /**
+         * Handle table filter
+         */
+        handleTableFilter: function() {
+            const $filter = $(this);
+            const $table = $filter.closest('.uc-table-controls').next('table');
+            UCAdmin.filterTable($table);
+        },
+
+        /**
+         * Filter table based on search and filters
+         */
+        filterTable: function($table) {
+            const $controls = $table.prev('.uc-table-controls');
+            const $search = $controls.find('.uc-table-search');
+            const searchTerm = $search.val().toLowerCase().trim();
+
+            // Get all active filters
+            const filters = {};
+            $controls.find('.uc-table-filter').each(function() {
+                const $filter = $(this);
+                const filterType = $filter.data('filter');
+                const filterValue = $filter.val();
+                if (filterValue) {
+                    filters[filterType] = filterValue.toLowerCase();
+                }
+            });
+
+            let visibleCount = 0;
+            let totalCount = 0;
+
+            // Filter table rows
+            $table.find('tbody tr').each(function() {
+                const $row = $(this);
+                const rowText = $row.text().toLowerCase();
+                let show = true;
+                totalCount++;
+
+                // Apply search filter
+                if (searchTerm && !rowText.includes(searchTerm)) {
+                    show = false;
+                }
+
+                // Apply dropdown filters
+                if (show) {
+                    for (const filterType in filters) {
+                        const $cell = $row.find('[data-filter-' + filterType + ']');
+                        if ($cell.length) {
+                            const cellValue = $cell.data('filter-' + filterType).toString().toLowerCase();
+                            if (cellValue !== filters[filterType]) {
+                                show = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Show or hide row
+                if (show) {
+                    $row.show();
+                    visibleCount++;
+                } else {
+                    $row.hide();
+                }
+            });
+
+            // Update results count
+            const $count = $controls.find('.uc-results-count');
+            if ($count.length) {
+                if (searchTerm || Object.keys(filters).length > 0) {
+                    $count.text('Showing ' + visibleCount + ' of ' + totalCount + ' items');
+                } else {
+                    $count.text('');
+                }
+            }
+        },
+
+        /**
+         * Clear table search
+         */
+        clearTableSearch: function(e) {
+            e.preventDefault();
+            const $btn = $(this);
+            const $controls = $btn.closest('.uc-table-controls');
+            const $search = $controls.find('.uc-table-search');
+            const $table = $controls.next('table');
+
+            $search.val('');
+            $controls.find('.uc-table-filter').val('');
+            UCAdmin.filterTable($table);
         }
     };
 

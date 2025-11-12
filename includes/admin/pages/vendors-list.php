@@ -24,6 +24,20 @@ $vendors = $vendors_handler->get_all();
 
 	<div class="uc-card">
 		<?php if ( $vendors ) : ?>
+			<!-- Search and Filter Controls -->
+			<div class="uc-table-controls" style="padding: 15px 15px 0; border-bottom: 1px solid #ddd;">
+				<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+					<input type="text" class="uc-table-search" placeholder="<?php esc_attr_e( 'Search vendors by name, phone, email, or GST...', 'u-commerce' ); ?>" style="flex: 1; min-width: 250px; padding: 6px 10px;">
+					<select class="uc-table-filter" data-filter="status" style="padding: 6px 10px;">
+						<option value=""><?php esc_html_e( 'All Status', 'u-commerce' ); ?></option>
+						<option value="active"><?php esc_html_e( 'Active', 'u-commerce' ); ?></option>
+						<option value="inactive"><?php esc_html_e( 'Inactive', 'u-commerce' ); ?></option>
+					</select>
+					<button type="button" class="button uc-clear-search"><?php esc_html_e( 'Clear', 'u-commerce' ); ?></button>
+				</div>
+				<div class="uc-results-count" style="color: #666; font-size: 13px; margin-bottom: 10px;"></div>
+			</div>
+
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
 					<tr>
@@ -44,7 +58,7 @@ $vendors = $vendors_handler->get_all();
 							<td><?php echo esc_html( $vendor->phone ); ?></td>
 							<td><?php echo esc_html( $vendor->email ); ?></td>
 							<td><code><?php echo esc_html( $vendor->gst_number ); ?></code></td>
-							<td>
+							<td data-filter-status="<?php echo esc_attr( $vendor->status ); ?>">
 								<span class="uc-badge uc-badge-<?php echo esc_attr( $vendor->status === 'active' ? 'success' : 'warning' ); ?>">
 									<?php echo esc_html( ucfirst( $vendor->status ) ); ?>
 								</span>

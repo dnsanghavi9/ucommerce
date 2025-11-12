@@ -47,6 +47,25 @@ foreach ( $sub_centers as $sub ) {
 
     <div class="uc-card">
         <?php if ( $all_centers ) : ?>
+            <!-- Search and Filter Controls -->
+            <div class="uc-table-controls" style="padding: 15px 15px 0; border-bottom: 1px solid #ddd;">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <input type="text" class="uc-table-search" placeholder="<?php esc_attr_e( 'Search centers by name, address, or contact...', 'u-commerce' ); ?>" style="flex: 1; min-width: 250px; padding: 6px 10px;">
+                    <select class="uc-table-filter" data-filter="type" style="padding: 6px 10px;">
+                        <option value=""><?php esc_html_e( 'All Types', 'u-commerce' ); ?></option>
+                        <option value="main"><?php esc_html_e( 'Main', 'u-commerce' ); ?></option>
+                        <option value="sub"><?php esc_html_e( 'Sub', 'u-commerce' ); ?></option>
+                    </select>
+                    <select class="uc-table-filter" data-filter="status" style="padding: 6px 10px;">
+                        <option value=""><?php esc_html_e( 'All Status', 'u-commerce' ); ?></option>
+                        <option value="active"><?php esc_html_e( 'Active', 'u-commerce' ); ?></option>
+                        <option value="inactive"><?php esc_html_e( 'Inactive', 'u-commerce' ); ?></option>
+                    </select>
+                    <button type="button" class="button uc-clear-search"><?php esc_html_e( 'Clear', 'u-commerce' ); ?></button>
+                </div>
+                <div class="uc-results-count" style="color: #666; font-size: 13px; margin-bottom: 10px;"></div>
+            </div>
+
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
@@ -68,7 +87,7 @@ foreach ( $sub_centers as $sub ) {
                         <tr>
                             <td><?php echo esc_html( $center->id ); ?></td>
                             <td><strong><?php echo esc_html( $center->name ); ?></strong></td>
-                            <td>
+                            <td data-filter-type="main">
                                 <span class="uc-badge uc-badge-info">
                                     <?php esc_html_e( 'Main', 'u-commerce' ); ?>
                                 </span>
@@ -76,7 +95,7 @@ foreach ( $sub_centers as $sub ) {
                             <td>—</td>
                             <td><?php echo esc_html( wp_trim_words( $center->address, 8 ) ); ?></td>
                             <td><?php echo esc_html( wp_trim_words( $center->contact_info, 5 ) ); ?></td>
-                            <td>
+                            <td data-filter-status="<?php echo esc_attr( $center->status ); ?>">
                                 <span class="uc-badge <?php echo $center->status === 'active' ? 'uc-badge-success' : 'uc-badge-warning'; ?>">
                                     <?php echo esc_html( ucfirst( $center->status ) ); ?>
                                 </span>
@@ -103,7 +122,7 @@ foreach ( $sub_centers as $sub ) {
                                 <td>
                                     <span style="margin-left: 20px;">↳ <?php echo esc_html( $sub->name ); ?></span>
                                 </td>
-                                <td>
+                                <td data-filter-type="sub">
                                     <span class="uc-badge" style="background: #ddd; color: #333;">
                                         <?php esc_html_e( 'Sub', 'u-commerce' ); ?>
                                     </span>
@@ -111,7 +130,7 @@ foreach ( $sub_centers as $sub ) {
                                 <td><?php echo esc_html( $center->name ); ?></td>
                                 <td><?php echo esc_html( wp_trim_words( $sub->address, 8 ) ); ?></td>
                                 <td><?php echo esc_html( wp_trim_words( $sub->contact_info, 5 ) ); ?></td>
-                                <td>
+                                <td data-filter-status="<?php echo esc_attr( $sub->status ); ?>">
                                     <span class="uc-badge <?php echo $sub->status === 'active' ? 'uc-badge-success' : 'uc-badge-warning'; ?>">
                                         <?php echo esc_html( ucfirst( $sub->status ) ); ?>
                                     </span>
@@ -149,7 +168,7 @@ foreach ( $sub_centers as $sub ) {
                         <tr style="background: #fff8dc;">
                             <td><?php echo esc_html( $sub->id ); ?></td>
                             <td><?php echo esc_html( $sub->name ); ?></td>
-                            <td>
+                            <td data-filter-type="sub">
                                 <span class="uc-badge" style="background: #ddd; color: #333;">
                                     <?php esc_html_e( 'Sub', 'u-commerce' ); ?>
                                 </span>
@@ -161,7 +180,7 @@ foreach ( $sub_centers as $sub ) {
                             </td>
                             <td><?php echo esc_html( wp_trim_words( $sub->address, 8 ) ); ?></td>
                             <td><?php echo esc_html( wp_trim_words( $sub->contact_info, 5 ) ); ?></td>
-                            <td>
+                            <td data-filter-status="<?php echo esc_attr( $sub->status ); ?>">
                                 <span class="uc-badge <?php echo $sub->status === 'active' ? 'uc-badge-success' : 'uc-badge-warning'; ?>">
                                     <?php echo esc_html( ucfirst( $sub->status ) ); ?>
                                 </span>

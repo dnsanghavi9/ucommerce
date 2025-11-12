@@ -65,6 +65,15 @@ foreach ( $categories as $category ) {
 
     <div class="uc-card">
         <?php if ( $categories ) : ?>
+            <!-- Search Controls -->
+            <div class="uc-table-controls" style="padding: 15px 15px 0; border-bottom: 1px solid #ddd;">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <input type="text" class="uc-table-search" placeholder="<?php esc_attr_e( 'Search categories by name, slug, or description...', 'u-commerce' ); ?>" style="flex: 1; min-width: 250px; padding: 6px 10px;">
+                    <button type="button" class="button uc-clear-search"><?php esc_html_e( 'Clear', 'u-commerce' ); ?></button>
+                </div>
+                <div class="uc-results-count" style="color: #666; font-size: 13px; margin-bottom: 10px;"></div>
+            </div>
+
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>

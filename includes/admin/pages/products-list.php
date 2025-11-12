@@ -23,6 +23,10 @@ $products = $products_handler->get_all( array(
 
 $total_products = $products_handler->get_count();
 $total_pages = ceil( $total_products / $per_page );
+
+// Get all categories for filter
+$categories_handler = new UC_Categories();
+$all_categories = $categories_handler->get_all();
 ?>
 
 <div class="wrap">
@@ -34,6 +38,30 @@ $total_pages = ceil( $total_products / $per_page );
 
     <div class="uc-card">
         <?php if ( $products ) : ?>
+            <!-- Search and Filter Controls -->
+            <div class="uc-table-controls" style="padding: 15px 15px 0; border-bottom: 1px solid #ddd;">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <input type="text" class="uc-table-search" placeholder="<?php esc_attr_e( 'Search products by name, SKU, or category...', 'u-commerce' ); ?>" style="flex: 1; min-width: 250px; padding: 6px 10px;">
+                    <select class="uc-table-filter" data-filter="category" style="padding: 6px 10px; min-width: 150px;">
+                        <option value=""><?php esc_html_e( 'All Categories', 'u-commerce' ); ?></option>
+                        <?php if ( $all_categories ) : ?>
+                            <?php foreach ( $all_categories as $cat ) : ?>
+                                <option value="<?php echo esc_attr( $cat->id ); ?>">
+                                    <?php echo esc_html( $cat->name ); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                    <select class="uc-table-filter" data-filter="status" style="padding: 6px 10px;">
+                        <option value=""><?php esc_html_e( 'All Status', 'u-commerce' ); ?></option>
+                        <option value="active"><?php esc_html_e( 'Active', 'u-commerce' ); ?></option>
+                        <option value="inactive"><?php esc_html_e( 'Inactive', 'u-commerce' ); ?></option>
+                    </select>
+                    <button type="button" class="button uc-clear-search"><?php esc_html_e( 'Clear', 'u-commerce' ); ?></button>
+                </div>
+                <div class="uc-results-count" style="color: #666; font-size: 13px; margin-bottom: 10px;"></div>
+            </div>
+
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
@@ -52,7 +80,7 @@ $total_pages = ceil( $total_products / $per_page );
                             <td><?php echo esc_html( $product->id ); ?></td>
                             <td><strong><?php echo esc_html( $product->name ); ?></strong></td>
                             <td><code><?php echo esc_html( $product->sku ); ?></code></td>
-                            <td>
+                            <td data-filter-category="<?php echo esc_attr( $product->category_id ); ?>">
                                 <?php
                                 if ( $product->category_id ) {
                                     $categories = new UC_Categories();
@@ -64,7 +92,7 @@ $total_pages = ceil( $total_products / $per_page );
                                 ?>
                             </td>
                             <td><?php echo esc_html( UC_Utilities::format_price( $product->base_cost ) ); ?></td>
-                            <td>
+                            <td data-filter-status="<?php echo esc_attr( $product->status ); ?>">
                                 <span class="uc-badge uc-badge-<?php echo esc_attr( $product->status === 'active' ? 'success' : 'warning' ); ?>">
                                     <?php echo esc_html( ucfirst( $product->status ) ); ?>
                                 </span>
