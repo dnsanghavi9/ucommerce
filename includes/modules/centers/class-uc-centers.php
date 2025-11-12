@@ -137,8 +137,8 @@ class UC_Centers {
     public function get_all( $args = array() ) {
         $defaults = array(
             'where'    => array( 'status' => 'active' ),
-            'orderby'  => 'name',
-            'order'    => 'ASC',
+            'orderby'  => 'created_at',
+            'order'    => 'DESC',
             'limit'    => null,
             'offset'   => null,
         );

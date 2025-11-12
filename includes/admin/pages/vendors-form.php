@@ -35,6 +35,11 @@ if ( $is_edit ) {
 	<a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-vendors' ) ); ?>" class="page-title-action">
 		<?php esc_html_e( '← Back to Vendors', 'u-commerce' ); ?>
 	</a>
+	<?php if ( $is_edit ) : ?>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=u-commerce-vendors&action=new' ) ); ?>" class="page-title-action">
+			<?php esc_html_e( 'Add New Vendor', 'u-commerce' ); ?>
+		</a>
+	<?php endif; ?>
 	<hr class="wp-header-end">
 
 	<?php if ( $is_edit ) : ?>

@@ -104,6 +104,8 @@ class UC_Activator {
             type varchar(20) NOT NULL DEFAULT 'sub',
             parent_id bigint(20) UNSIGNED DEFAULT 0,
             address text,
+            phone varchar(20),
+            email varchar(100),
             contact_info text,
             status varchar(20) NOT NULL DEFAULT 'active',
             created_at datetime DEFAULT CURRENT_TIMESTAMP,

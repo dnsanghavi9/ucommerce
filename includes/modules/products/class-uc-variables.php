@@ -48,8 +48,8 @@ class UC_Variables {
 		global $wpdb;
 
 		$defaults = array(
-			'orderby' => 'name',
-			'order'   => 'ASC',
+			'orderby' => 'created_at',
+			'order'   => 'DESC',
 			'limit'   => null,
 			'offset'  => 0,
 		);

@@ -38,8 +38,8 @@ class UC_Vendors {
 	 */
 	public function get_all( $args = array() ) {
 		$defaults = array(
-			'orderby' => 'name',
-			'order'   => 'ASC',
+			'orderby' => 'created_at',
+			'order'   => 'DESC',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
