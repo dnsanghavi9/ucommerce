@@ -35,8 +35,8 @@ if ( $action === 'delete' && $category_id ) {
     }
 }
 
-// Get all categories
-$categories = $categories_handler->get_all();
+// Get all categories with product counts
+$categories = $categories_handler->get_all_with_counts();
 
 // Organize into parent-child structure
 $category_tree = array();
@@ -72,6 +72,7 @@ foreach ( $categories as $category ) {
                         <th><?php esc_html_e( 'Name', 'u-commerce' ); ?></th>
                         <th><?php esc_html_e( 'Slug', 'u-commerce' ); ?></th>
                         <th><?php esc_html_e( 'Description', 'u-commerce' ); ?></th>
+                        <th style="width: 100px; text-align: center;"><?php esc_html_e( 'Products', 'u-commerce' ); ?></th>
                         <th><?php esc_html_e( 'Parent', 'u-commerce' ); ?></th>
                         <th style="width: 150px;"><?php esc_html_e( 'Actions', 'u-commerce' ); ?></th>
                     </tr>
@@ -86,9 +87,17 @@ foreach ( $categories as $category ) {
                             <td><?php echo esc_html( $category->id ); ?></td>
                             <td>
                                 <strong><?php echo esc_html( $indent . ' ' . $category->name ); ?></strong>
+                                <?php if ( ! empty( $category->is_default ) ) : ?>
+                                    <span class="uc-badge uc-badge-primary" style="margin-left: 5px;">
+                                        <?php esc_html_e( 'Default', 'u-commerce' ); ?>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td><?php echo esc_html( $category->slug ); ?></td>
                             <td><?php echo esc_html( wp_trim_words( $category->description, 10 ) ); ?></td>
+                            <td style="text-align: center;">
+                                <strong><?php echo esc_html( isset( $category->product_count ) ? $category->product_count : 0 ); ?></strong>
+                            </td>
                             <td>
                                 <?php
                                 if ( $category->parent_id && isset( $category_map[$category->parent_id] ) ) {
@@ -103,11 +112,16 @@ foreach ( $categories as $category ) {
                                         data-id="<?php echo esc_attr( $category->id ); ?>">
                                     <?php esc_html_e( 'Edit', 'u-commerce' ); ?>
                                 </button>
-                                <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=u-commerce-categories&action=delete&id=' . $category->id ), 'delete_category_' . $category->id ) ); ?>"
-                                   class="button button-small uc-delete-btn"
-                                   style="color: #b32d2e;">
-                                    <?php esc_html_e( 'Delete', 'u-commerce' ); ?>
-                                </a>
+                                <?php if ( empty( $category->is_default ) ) : ?>
+                                    <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=u-commerce-categories&action=delete&id=' . $category->id ), 'delete_category_' . $category->id ) ); ?>"
+                                       class="button button-small uc-delete-btn"
+                                       style="color: #b32d2e;"
+                                       onclick="return confirm('<?php esc_attr_e( 'Are you sure? Products in this category will be moved to the default category.', 'u-commerce' ); ?>');">
+                                        <?php esc_html_e( 'Delete', 'u-commerce' ); ?>
+                                    </a>
+                                <?php else : ?>
+                                    <span style="color: #999;"><?php esc_html_e( 'Cannot delete default', 'u-commerce' ); ?></span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php

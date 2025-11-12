@@ -79,11 +79,14 @@ class UC_Activator {
             slug varchar(200) NOT NULL,
             description text,
             parent_id bigint(20) UNSIGNED DEFAULT 0,
+            is_default tinyint(1) DEFAULT 0,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
+            UNIQUE KEY name (name),
             UNIQUE KEY slug (slug),
-            KEY parent_id (parent_id)
+            KEY parent_id (parent_id),
+            KEY is_default (is_default)
         ) $charset_collate;";
 
         // Product Variables Table

@@ -323,6 +323,11 @@ class UC_Plugin {
 
         $categories = new UC_Categories();
 
+        // Check for duplicate name
+        if ( $categories->name_exists( $data['name'], $category_id ) ) {
+            wp_send_json_error( array( 'message' => __( 'A category with this name already exists. Please use a unique name.', 'u-commerce' ) ) );
+        }
+
         if ( $category_id ) {
             // Update existing category
             $result = $categories->update( $category_id, $data );
