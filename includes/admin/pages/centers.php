@@ -30,29 +30,46 @@ if ( isset( $_POST['uc_center_submit'] ) ) {
         'type'         => isset( $_POST['type'] ) ? sanitize_text_field( $_POST['type'] ) : 'sub',
         'parent_id'    => isset( $_POST['parent_id'] ) ? absint( $_POST['parent_id'] ) : 0,
         'address'      => isset( $_POST['address'] ) ? sanitize_textarea_field( $_POST['address'] ) : '',
+        'phone'        => isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '',
+        'email'        => isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '',
         'contact_info' => isset( $_POST['contact_info'] ) ? sanitize_textarea_field( $_POST['contact_info'] ) : '',
         'status'       => isset( $_POST['status'] ) ? sanitize_text_field( $_POST['status'] ) : 'active',
     );
 
-    if ( $center_id ) {
-        // Update
-        $result = $centers_handler->update( $center_id, $data );
-        $message = __( 'Center updated successfully.', 'u-commerce' );
-    } else {
-        // Create
-        $result = $centers_handler->create( $data );
-        $message = __( 'Center created successfully.', 'u-commerce' );
+    // Validate phone if provided
+    $validation_passed = true;
+    if ( ! empty( $data['phone'] ) && ! preg_match( '/^[6-9][0-9]{9}$/', $data['phone'] ) ) {
+        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid phone number. Must be 10 digits starting with 6, 7, 8, or 9.', 'u-commerce' ) . '</p></div>';
+        $validation_passed = false;
     }
 
-    if ( $result ) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
-    } else {
-        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Failed to save center.', 'u-commerce' ) . '</p></div>';
+    // Validate email if provided
+    if ( ! empty( $data['email'] ) && ! is_email( $data['email'] ) ) {
+        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid email address.', 'u-commerce' ) . '</p></div>';
+        $validation_passed = false;
     }
 
-    // Redirect to list after save
-    if ( $result ) {
-        echo '<script>window.location.href = "' . esc_url( admin_url( 'admin.php?page=u-commerce-centers' ) ) . '";</script>';
+    if ( $validation_passed ) {
+        if ( $center_id ) {
+            // Update
+            $result = $centers_handler->update( $center_id, $data );
+            $message = __( 'Center updated successfully.', 'u-commerce' );
+        } else {
+            // Create
+            $result = $centers_handler->create( $data );
+            $message = __( 'Center created successfully.', 'u-commerce' );
+        }
+
+        if ( $result ) {
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+        } else {
+            echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Failed to save center.', 'u-commerce' ) . '</p></div>';
+        }
+
+        // Redirect to list after save
+        if ( $result ) {
+            echo '<script>window.location.href = "' . esc_url( admin_url( 'admin.php?page=u-commerce-centers' ) ) . '";</script>';
+        }
     }
 }
 

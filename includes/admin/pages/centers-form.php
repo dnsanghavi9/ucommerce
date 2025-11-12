@@ -109,16 +109,51 @@ $all_centers = $centers_handler->get_all( array( 'where' => array() ) );
 
                 <tr>
                     <th scope="row">
+                        <label for="center_phone">
+                            <?php esc_html_e( 'Phone', 'u-commerce' ); ?>
+                        </label>
+                    </th>
+                    <td>
+                        <input type="tel"
+                               name="phone"
+                               id="center_phone"
+                               class="regular-text"
+                               pattern="[6-9][0-9]{9}"
+                               value="<?php echo $is_edit && isset( $center->phone ) ? esc_attr( $center->phone ) : ''; ?>"
+                               placeholder="9876543210">
+                        <p class="description"><?php esc_html_e( 'Indian mobile number (10 digits starting with 6-9)', 'u-commerce' ); ?></p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">
+                        <label for="center_email">
+                            <?php esc_html_e( 'Email', 'u-commerce' ); ?>
+                        </label>
+                    </th>
+                    <td>
+                        <input type="email"
+                               name="email"
+                               id="center_email"
+                               class="regular-text"
+                               value="<?php echo $is_edit && isset( $center->email ) ? esc_attr( $center->email ) : ''; ?>"
+                               placeholder="center@example.com">
+                        <p class="description"><?php esc_html_e( 'Email address for the center', 'u-commerce' ); ?></p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">
                         <label for="center_contact">
-                            <?php esc_html_e( 'Contact Information', 'u-commerce' ); ?>
+                            <?php esc_html_e( 'Additional Contact Info', 'u-commerce' ); ?>
                         </label>
                     </th>
                     <td>
                         <textarea name="contact_info"
                                   id="center_contact"
                                   class="large-text"
-                                  rows="3"><?php echo $is_edit ? esc_textarea( $center->contact_info ) : ''; ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Phone, email, manager name, etc.', 'u-commerce' ); ?></p>
+                                  rows="2"><?php echo $is_edit ? esc_textarea( $center->contact_info ) : ''; ?></textarea>
+                        <p class="description"><?php esc_html_e( 'Manager name, alternate contact, etc.', 'u-commerce' ); ?></p>
                     </td>
                 </tr>
 
